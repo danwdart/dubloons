@@ -1,0 +1,8 @@
+.stack-work
+dist
+dist-newstyle
+.ghc.*
+google.json
+auth-token.secret
+*.hi
+*.o
