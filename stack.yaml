@@ -1,17 +1,9 @@
-resolver: lts-15.8
+resolver: lts-15.9
 packages:
 - .
 extra-deps:
-  - aeson-1.4.3.0
-  - bytestring-0.10.8.2
-  - discord-haskell-1.1.0
-  - emoji-0.1.0.2@sha256:d995572a5c7dcd28f98eb15c6e387a7b3bda1ac2477ab0d9dba8580d5d7b161f,1273
-  - http2-2.0.3@sha256:c08885f0fd26ae035b169029b782cc693cc30e4d7a3b6f21a61de31085e8cfae,17644
-  - hxt-9.3.1.16
-  - hxt-xpath-9.1.2.2
-  - safe-foldable-0.1.0.0
-  - req-2.1.0
-  - text-1.2.3.1
-  - warp-3.3.1
+- discord-haskell-1.5.0@sha256:eabc14a9f6b0f2ba82034c0fe80e8504a816c915fb99e83e7b71c3a878e7692d,3798
+- emoji-0.1.0.2@sha256:d995572a5c7dcd28f98eb15c6e387a7b3bda1ac2477ab0d9dba8580d5d7b161f,1273
+- hxt-xpath-9.1.2.2@sha256:9cd590ae93a04573db8f90fa4094625ebd97dded45da7667c577ce6b38a42900,1999
 ghc-options:
   dubloons: -Wall -Werror -Wno-type-defaults
