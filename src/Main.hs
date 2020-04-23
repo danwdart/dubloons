@@ -51,13 +51,16 @@ indexList' (a:as) total = (total - length as, a):indexList' as total
 getQuery :: IORef MState -> DiscordHandle -> ChannelId -> Text -> Text -> IO ()
 getQuery ir h channelId hostname query = do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
-    results <- queryPirate hostname query
-    _ <- sendMsg $ "Yarrrr, I got ye ' " <> query <> " for ye!"
-    _ <- liftIO $ writeIORef ir (indexList results)
-    _ <- sendMsg $ "Yarrrr, I stored ye ' " <> query <> " for ye! Here they be:"
-    mapM_ (\(ix, (name, _)) -> void $ sendMsg . T.pack $ show ix <> ": " <> name) $
-        take 10 (indexList results)
-    void . sendMsg $ "Yarr, that be it! Ye can pick! Ye say fer example 'dl 2' to get ye yer second entry! Arr!"
+    res <- runExceptT $ queryPirate hostname query
+    case res of
+        Left a -> void $ sendMsg $ T.pack a
+        Right results -> do
+            _ <- sendMsg $ "Yarrrr, I got ye ' " <> query <> " for ye!"
+            _ <- liftIO $ writeIORef ir (indexList results)
+            _ <- sendMsg $ "Yarrrr, I stored ye ' " <> query <> " for ye! Here they be:"
+            mapM_ (\(ix, (name, _)) -> void $ sendMsg . T.pack $ show ix <> ": " <> name) $
+                take 10 (indexList results)
+            void . sendMsg $ "Yarr, that be it! Ye can pick! Ye say fer example 'dl 2' to get ye yer second entry! Arr!"
     where
         sendMsg = sendMessage h channelId
 
