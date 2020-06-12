@@ -1,8 +1,8 @@
 name:                dubloons
-version:             0.1.0.0
+version:             0.3.0.0
 -- synopsis:
 -- description:
-homepage:            https://github.com/danwdart/projects#readme
+homepage:            https://github.com/danwdart/dubloons#readme
 license:             PublicDomain
 -- license-file:        LICENSE
 author:              Dan Dart
@@ -31,4 +31,4 @@ executable dubloons
     , retry
     , text
     , transformers
-  other-modules: Lib.Pirate, Lib.Prelude, Lib.XPath
+  other-modules: Lib.Pirate, Lib.Prelude
