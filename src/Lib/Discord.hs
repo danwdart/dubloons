@@ -23,53 +23,43 @@ import           System.Process
 handleStart ∷ Env → DiscordHandle → IO ()
 handleStart dEnv h = do
     putStrLn "Start handler called"
-    -- Right user <- restCall h GetCurrentUser
-    -- channel <- restCall h (GetChannel cid)
     void $ sendMessage dEnv h "-- Arrr, I be here! --"
 
 sendMessage ∷ Env → DiscordHandle → MessageText → IO MessageResult
-sendMessage dEnv h msg = do
-    putStrLn $ "Sending a message to channel " <> show cid <> " on guild " <> show gid
-    restCall h . CreateMessage cid $ msg
-    where
-        cid = envCID dEnv
-        gid = envGID dEnv
+sendMessage dEnv h = restCall h . CreateMessage (envCID dEnv)
 
 getQuery ∷ Env → DiscordHandle → Query → IO ()
 getQuery dEnv h query = do
-    putStrLn $ "Query CID = " <> show cid <> ", GID = " <> show gid
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
     res <- runExceptT $ queryPirate apiDomain query
     case res of
         Left a → void $ sendMsg $ T.pack a
         Right results → do
-            _ <- sendMsg $ "Yarrrr, I got ye ' " <> query <> " for ye!"
+            _ <- sendMsg $ "Yarrrr, I got ye " <> query <> " for ye!"
             _ <- liftIO $ writeIORef ir (indexList results)
-            _ <- sendMsg $ "Yarrrr, I stored ye ' " <> query <> " for ye! Here they be:"
-            mapM_ (\(ix, Row {
-                    name = rowName,
-                    leechers = rowLeechers,
-                    seeders = rowSeeders,
-                    imdb = rowIMDB
-                }) →
-                void $ sendMsg . T.pack $
-                    show ix <>
-                    ": " <>
-                    T.unpack rowName <>
-                    " (" <>
-                    show rowSeeders <>
-                    " seeders, " <>
-                    show rowLeechers <>
-                    " leechers)." <>
-                    maybe mempty (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB) $
+            _ <- sendMsg $ "Yarrrr, I stored ye " <> query <> " for ye! Here they be:"
+            mapM_ sendQueries $
                         take 10 (indexList results)
             void . sendMsg $ "Yarr, that be it! Ye can be pickin'! Ye says fer example 'dl 2' fer gettin' ye yer second pick! Arr!"
     where
-        cid = envCID dEnv
-        gid = envGID dEnv
         ir = envStateM dEnv
         apiDomain = envApiDomain dEnv
         sendMsg = sendMessage dEnv h
+        sendQueries (ix, Row {
+            name = rowName,
+            leechers = rowLeechers,
+            seeders = rowSeeders,
+            imdb = rowIMDB
+        }) = void $ sendMsg . T.pack $
+            show ix <>
+            ": " <>
+            T.unpack rowName <>
+            " (" <>
+            show rowSeeders <>
+            " seeders, " <>
+            show rowLeechers <>
+            " leechers)." <>
+            maybe mempty (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB
 
 parseMsg ∷ Env →  DiscordHandle → Query → Command → IO ()
 parseMsg dEnv h query = \case
@@ -81,11 +71,15 @@ parseMsg dEnv h query = \case
         void $ sendMsg (T.pack $ show (map (second show) v))
     "dl" → do
         let ir = envStateM dEnv
-        let torrentClient = envTorrentClient dEnv
         v <- liftIO . readIORef $ ir
         let result = lookup (read . T.unpack $ query) v
         -- void . sendMsg . T.pack $ show $ result) v
-        maybe (void $ sendMsg "Yarr, that weren't existin'!") (\r → do
+        maybe (void $ sendMsg "Yarr, that weren't existin'!") sendSpawned result
+    _ → return ()
+    where
+        torrentClient = envTorrentClient dEnv
+        sendMsg = sendMessage dEnv h
+        sendSpawned r = do
             let magnetLink = magnetPrefix <> info_hash r <> magnetSuffix
             _ <- sendMsg "Yarr, I be spawnin' yer download!"
             _ <- liftIO . spawnCommand . T.unpack $ -- TODO nohup this
@@ -94,10 +88,6 @@ parseMsg dEnv h query = \case
                 magnetLink <>
                 "'"
             void $ sendMsg "Yarr, I spawned yer download!"
-            ) result
-    _ → return ()
-    where
-        sendMsg = sendMessage dEnv h
 
 handleMessage ∷ Env → Username → DiscordHandle → MessageText → IO ()
 handleMessage dEnv un h = \case
