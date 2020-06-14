@@ -5,11 +5,9 @@
 module Lib.Discord where
 
 import           Control.Monad
-import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Except
 import           Data.Bifunctor
-import           Data.IORef
-import qualified Data.Text                  as T
+import Data.Text                  as T hiding (map, take)
 import           Discord
 import           Discord.Requests
 import           Discord.Types
@@ -17,8 +15,7 @@ import           Lib.Pirate
 import           Lib.Prelude
 import           Lib.Types
 import           Lib.Util
-import           Prelude                    hiding (print, putStrLn)
-import           System.Process
+import           Prelude                    hiding (print, putStrLn, words, unwords)
 
 handleStart ∷ Env → DiscordHandle → IO ()
 handleStart dEnv h = do
@@ -36,7 +33,7 @@ getQuery dEnv h query = do
         Left a → void $ sendMsg $ T.pack a
         Right results → do
             _ <- sendMsg $ "Yarrrr, I got ye " <> query <> " for ye!"
-            _ <- liftIO $ writeIORef ir (indexList results)
+            _ <- writeIORef ir (indexList results)
             _ <- sendMsg $ "Yarrrr, I stored ye " <> query <> " for ye! Here they be:"
             mapM_ sendQueries $
                         take 10 (indexList results)
@@ -67,11 +64,11 @@ parseMsg dEnv h query = \case
     "get" → getQuery dEnv h query
     "results" → do
         let ir = envStateM dEnv
-        v <- liftIO . readIORef $ ir
+        v <- readIORef ir
         void $ sendMsg (T.pack $ show (map (second show) v))
     "dl" → do
         let ir = envStateM dEnv
-        v <- liftIO . readIORef $ ir
+        v <- readIORef ir
         let result = lookup (read . T.unpack $ query) v
         -- void . sendMsg . T.pack $ show $ result) v
         maybe (void $ sendMsg "Yarr, that weren't existin'!") sendSpawned result
@@ -82,7 +79,7 @@ parseMsg dEnv h query = \case
         sendSpawned r = do
             let magnetLink = magnetPrefix <> info_hash r <> magnetSuffix
             _ <- sendMsg "Yarr, I be spawnin' yer download!"
-            _ <- liftIO . spawnCommand . T.unpack $ -- TODO nohup this
+            _ <- spawnCommand $ -- TODO nohup this
                 torrentClient <>
                 " -- '" <>
                 magnetLink <>

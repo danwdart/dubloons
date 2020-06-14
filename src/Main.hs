@@ -6,7 +6,6 @@ import           Control.Exception
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Except
-import           Data.IORef
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import           Debug.Trace
@@ -78,8 +77,8 @@ main = void $ runExceptT $ do
         torrentClient
         ] <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
     putStrLn "Starting bot"
-    stateM <- liftIO . newIORef $ []
-    _ <- liftIO . runDiscord $
+    stateM <- newIORef []
+    _ <- io . runDiscord $
         runDiscordOpts Env {
             envStateM = stateM,
             envToken = token,
