@@ -6,6 +6,7 @@ module Lib.Types where
 import           Data.Aeson
 import           Data.IORef
 import           Data.Text
+import Data.Map
 import           Discord
 import           Discord.Types
 import           GHC.Generics
@@ -50,7 +51,7 @@ type MessageText = Text
 type Query = Text
 type Command = Text
 type MessageResult = Either RestCallErrorCode Message
-type StateM = [(Int, Row)]
+type StateM = Map ChannelId (Map Int Row)
 type APIDomain = Text
 type TorrentClient = Text
 

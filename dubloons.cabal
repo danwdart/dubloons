@@ -20,6 +20,7 @@ executable dubloons
   build-depends:       base >= 4.7 && < 5
     , aeson
     , bytestring
+    , containers
     , discord-haskell
     , http-client
     , hxt
@@ -31,4 +32,11 @@ executable dubloons
     , retry
     , text
     , transformers
-  other-modules: Lib.Pirate, Lib.Prelude
+  other-modules: Lib.Pirate, Lib.Prelude, Lib.Discord, Lib.Types
+
+test-suite dubloons-tests
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      src
+  main-is:             Test/Main.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5, hspec, QuickCheck

@@ -1,10 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
+-- TODO lifted-base
+
 module Lib.Prelude where
 
 import qualified Data.IORef as P
 import Control.Monad.IO.Class
+import Data.Map.Strict
 import Data.String
 import qualified Prelude as P
 import Prelude (
@@ -12,7 +15,7 @@ import Prelude (
     IO,
     read,
     show,
-    Show
+    Show,
     )
 import qualified System.Process as P
 
@@ -39,3 +42,9 @@ readIORef = io . P.readIORef
 
 writeIORef :: MonadIO m => P.IORef a -> a -> m ()
 writeIORef i a = io (P.writeIORef i a)
+
+modifyIORef :: MonadIO m => P.IORef a -> (a -> a) -> m ()
+modifyIORef i f = io (P.modifyIORef i f)
+
+zip :: P.Ord a => [a] -> [b] -> Map a b
+zip as bs = fromList (P.zip as bs)

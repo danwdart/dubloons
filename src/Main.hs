@@ -8,13 +8,13 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Except
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
+import Data.Map
 import           Debug.Trace
 import           Discord
 import           Lib.Discord
 import           Lib.Pirate
 import           Lib.Prelude
 import           Lib.Types
-import           Lib.Util
 import           Prelude                    hiding (print, putStrLn)
 import           System.Environment
 import           System.IO.Error
@@ -77,7 +77,7 @@ main = void $ runExceptT $ do
         torrentClient
         ] <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
     putStrLn "Starting bot"
-    stateM <- newIORef []
+    stateM <- newIORef empty
     _ <- io . runDiscord $
         runDiscordOpts Env {
             envStateM = stateM,
