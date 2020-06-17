@@ -1,5 +1,5 @@
-module Test.Main where
-
+import Test.Hspec
+import Test.QuickCheck
 
 tests = do
     return ()

@@ -36,7 +36,24 @@ executable dubloons
 
 test-suite dubloons-tests
   type:                exitcode-stdio-1.0
-  hs-source-dirs:      src
-  main-is:             Test/Main.hs
+  hs-source-dirs:      src, test
+  main-is:             test-main.hs
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5, hspec, QuickCheck
+  build-depends:       base >= 4.7 && < 5
+    , aeson
+    , bytestring
+    , containers
+    , discord-haskell
+    , hspec
+    , http-client
+    , hxt
+    , hxt-xpath
+    , mtl
+    , process
+    , QuickCheck
+    , req
+    , retry
+    , safe-foldable
+    , text
+    , transformers 
+  other-modules: Lib.Discord, Lib.Pirate, Lib.Prelude, Lib.Types

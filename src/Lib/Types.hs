@@ -5,8 +5,8 @@ module Lib.Types where
 
 import           Data.Aeson
 import           Data.IORef
+import           Data.Map
 import           Data.Text
-import Data.Map
 import           Discord
 import           Discord.Types
 import           GHC.Generics

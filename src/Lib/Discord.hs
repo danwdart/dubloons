@@ -6,7 +6,7 @@ module Lib.Discord where
 
 import           Control.Monad
 import           Control.Monad.Trans.Except
-import Data.Map.Strict
+import           Data.Map.Strict
 import           Data.Text                  as T hiding (map, take, zip)
 import           Discord
 import           Discord.Requests

@@ -2,6 +2,8 @@
 {-# LANGUAGE UnicodeSyntax     #-}
 {-# OPTIONS_GHC -Wall -Werror -Wno-type-defaults -Wno-unused-imports #-}
 
+module Main where
+
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.IO.Class
