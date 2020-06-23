@@ -2,7 +2,7 @@
 {-# LANGUAGE UnicodeSyntax     #-}
 {-# OPTIONS_GHC -Wall -Werror -Wno-type-defaults -Wno-unused-imports #-}
 
-module Lib.Pirate where
+module Lib.Pirate.TPB where
 
 import           Control.Exception
 import           Control.Monad.IO.Class     (liftIO)
@@ -26,6 +26,7 @@ magnetPrefix = "magnet:?xt=urn:btih:"
 
 magnetSuffix ∷ Text
 magnetSuffix = "&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2920%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounceinfo_hash"
+
 
 -- Don't error on 404. We just wanna check it.
 torConfig ∷ HttpConfig

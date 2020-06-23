@@ -5,7 +5,7 @@
 module Main where
 
 import           Control.Exception
-import           Control.Monad
+import           Control.Monad hiding (fail)
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Except
 import           Data.Text                  (Text)
@@ -14,11 +14,10 @@ import Data.Map
 import           Debug.Trace
 import           Discord
 import           Lib.Discord
-import           Lib.Pirate
+import           Lib.Pirate.TPB
 import           Lib.Prelude
 import           Lib.Types
-import           Prelude                    hiding (print, putStrLn)
-import           System.Environment
+import           Prelude                    hiding (fail, print, putStrLn)
 import           System.IO.Error
 
 type EnvVariable = Text
@@ -53,15 +52,9 @@ dubloonsEnvSettings = [
 getDubloonsEnv ∷ EnvVariable → EnvError → ExceptT IOException IO EnvReturn
 getDubloonsEnv var err = catchE (
         ExceptT (
-            tryJust (
-                guard . isDoesNotExistError
-            ) (
-                T.pack <$> getEnv (
-                    T.unpack var
-                )
-            )
+            tryJust (guard . isDoesNotExistError) (getEnv var)
         )
-    ) $ const $ fail . T.unpack $ err
+    ) $ const $ fail err
 
 main ∷ IO ()
 main = void $ runExceptT $ do

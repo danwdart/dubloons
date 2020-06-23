@@ -22,6 +22,7 @@ executable dubloons
     , bytestring
     , containers
     , discord-haskell
+    , feed
     , http-client
     , hxt
     , hxt-xpath
@@ -32,7 +33,14 @@ executable dubloons
     , retry
     , text
     , transformers
-  other-modules: Lib.Pirate, Lib.Prelude, Lib.Discord, Lib.Types
+    , xml-types
+  other-modules:
+      Lib.Discord
+    , Lib.Pirate.TPB
+    , Lib.Pirate.Nyaa
+    , Lib.Pirate.NyaaPantsu
+    , Lib.Prelude
+    , Lib.Types
 
 test-suite dubloons-tests
   type:                exitcode-stdio-1.0
@@ -44,6 +52,7 @@ test-suite dubloons-tests
     , bytestring
     , containers
     , discord-haskell
+    , feed
     , hspec
     , http-client
     , hxt
@@ -55,5 +64,12 @@ test-suite dubloons-tests
     , retry
     , safe-foldable
     , text
-    , transformers 
-  other-modules: Lib.Discord, Lib.Pirate, Lib.Prelude, Lib.Types
+    , transformers
+    , xml-types
+  other-modules:
+      Lib.Discord
+    , Lib.Pirate.TPB
+    , Lib.Pirate.Nyaa
+    , Lib.Pirate.NyaaPantsu
+    , Lib.Prelude
+    , Lib.Types

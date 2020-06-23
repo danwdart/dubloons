@@ -11,12 +11,16 @@ import Data.Map.Strict
 import Data.String
 import qualified Prelude as P
 import Prelude (
+    ($),
+    (<$>),
     (.),
     IO,
+    MonadFail,
     read,
     show,
     Show,
     )
+import qualified System.Environment as P
 import qualified System.Process as P
 
 io :: (MonadIO m) => IO a -> m a
@@ -24,6 +28,12 @@ io = liftIO
 
 toString :: (IsString s, Show s) => s → String
 toString = read . show
+
+getEnv :: (IsString s, Show s, MonadIO m) => s -> m s
+getEnv s = io $ fromString <$> P.getEnv (toString s)
+
+fail :: (MonadFail m, MonadIO m, IsString s, Show s) => s -> m a
+fail = io . P.fail . toString
 
 putStrLn :: (MonadIO m, IsString s, Show s) => s → m ()
 putStrLn = io . P.putStrLn . toString
@@ -41,10 +51,10 @@ readIORef :: MonadIO m => P.IORef a -> m a
 readIORef = io . P.readIORef
 
 writeIORef :: MonadIO m => P.IORef a -> a -> m ()
-writeIORef i a = io (P.writeIORef i a)
+writeIORef i a = io $ P.writeIORef i a
 
 modifyIORef :: MonadIO m => P.IORef a -> (a -> a) -> m ()
-modifyIORef i f = io (P.modifyIORef i f)
+modifyIORef i f = io $ P.modifyIORef i f
 
 zip :: P.Ord a => [a] -> [b] -> Map a b
-zip as bs = fromList (P.zip as bs)
+zip as bs = fromList $ P.zip as bs

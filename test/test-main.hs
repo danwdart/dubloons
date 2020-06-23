@@ -1,8 +1,8 @@
 import Test.Hspec
 import Test.QuickCheck
-
-tests = do
-    return ()
+import Lib.Pirate.Nyaa
 
 main :: IO ()
-main = quickCheck tests
+main = quickCheck $ do
+    describe "nyaa" $ do
+        1 `shouldBe` 1

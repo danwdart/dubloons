@@ -11,7 +11,7 @@ import           Data.Text                  as T hiding (map, take, zip)
 import           Discord
 import           Discord.Requests
 import           Discord.Types
-import           Lib.Pirate
+import           Lib.Pirate.TPB
 import           Lib.Prelude
 import           Lib.Types
 import           Prelude                    hiding (lookup, map, print, putStrLn, take, unwords,
