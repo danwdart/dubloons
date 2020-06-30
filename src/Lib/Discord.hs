@@ -35,7 +35,7 @@ getQuery dEnv cid h query = do
             print results
             let r = zip [1..] results
             _ <- sendMsg $ "Yarrrr, I got ye " <> query <> " for ye!"
-            _ <- modifyIORef ir $ (\irv -> insert cid r irv)
+            _ <- modifyIORef ir $ insert cid r
             _ <- sendMsg $ "Yarrrr, I stored ye " <> query <> " for ye! Here they be:"
             mapM_ sendMsg $ mapWithKey textualise $ take 10 r
             void . sendMsg $ "Yarr, that be it! Ye can be pickin'! Ye says fer example 'dl 2' fer gettin' ye yer second pick! Arr!"
@@ -43,21 +43,11 @@ getQuery dEnv cid h query = do
         ir = envStateM dEnv
         apiDomain = envApiDomain dEnv
         sendMsg = sendMessage h cid
-        textualise ix Row {
-            name = rowName,
-            leechers = rowLeechers,
-            seeders = rowSeeders,
-            imdb = rowIMDB
-        } = T.pack $
+        textualise ix tpbRow = T.pack $
             show ix <>
             ": " <>
-            T.unpack rowName <>
-            " (" <>
-            show rowSeeders <>
-            " seeders, " <>
-            show rowLeechers <>
-            " leechers)." <>
-            maybe mempty (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB
+            show tpbRow
+            
 
 parseMsg ∷ Env →  ChannelId -> DiscordHandle → Query → Command → IO ()
 parseMsg dEnv cid h query = \case

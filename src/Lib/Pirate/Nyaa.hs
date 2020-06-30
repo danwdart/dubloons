@@ -1,29 +1,39 @@
-{-# LANGUAGE NamedFieldPuns, OverloadedStrings, UnicodeSyntax #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UnicodeSyntax     #-}
 
 module Lib.Pirate.Nyaa where
 
 import           Control.Exception
 import           Control.Monad.Trans.Except
-import Data.ByteString.Char8 (ByteString)
-import Data.Maybe
+import           Data.ByteString.Char8      (ByteString)
+import           Data.Maybe
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
-import Data.XML.Types
-import Lib.Prelude
+import           Data.XML.Types
+import           Lib.Prelude
+import           Lib.Types
 import           Network.HTTP.Req
-import Text.Feed.Import
-import Text.Feed.Types
-import Text.RSS.Syntax
-import Debug.Trace
+import           Text.Feed.Import
+import           Text.Feed.Types            hiding (RSSItem)
+import           Text.RSS.Syntax
 
 data NyaaRow = NyaaRow {
-    title :: Text,
-    description :: Text,
-    link :: Text
-} deriving (Show)
+    title       :: Text,
+    link        :: Text,
+    seeders     :: Maybe Int,
+    leechers    :: Maybe Int,
+    infoHash    :: Maybe Text
+} deriving (Row, Show)
 
-ua :: ByteString
+ua ∷ ByteString
 ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1 RuxitSynthetic/1.0 v966419272 t8706630810854404122 smf=0"
+
+magnetPrefix :: Text
+magnetPrefix = "magnet:?xt=urn:btih:"
+
+magnetSuffix :: Text
+magnetSuffix = "&tr=http%3A%2F%2Fnyaa.tracker.wf%3A7777%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce"
 
 getSearch ∷ Text → Req [NyaaRow]
 getSearch term = do
@@ -34,35 +44,30 @@ getSearch term = do
     let body = responseBody response
     let feed = parseFeedString $ toString body
     return $ case feed of
-        Just (AtomFeed f) -> undefined
-        Just (RSSFeed (RSS _ _ RSSChannel {
-            rssTitle,
-            rssLink,
-            rssDescription,
-            rssItems
-        } _)) ->
-            fmap (\Text.RSS.Syntax.RSSItem {
+        Just (RSSFeed (RSS _ _ RSSChannel {rssItems} _)) ->
+            (\RSSItem {
                 rssItemTitle,
                 rssItemLink,
-                rssItemDescription,
                 rssItemOther
             } ->
-                traceShow rssItemOther $ NyaaRow {
-                    title = fromMaybe "" rssItemTitle,
-                    description = fromMaybe "" rssItemDescription,
-                    link = fromMaybe "" rssItemLink
-                 } {-} <> " " <>
-                show rssItemLink <> " " <>
-                show rssItemDescription <> " " <>
-                show rssItemCategories <> " " <>
-                show rssItemComments <> " " <>
-                show rssItemSource <> " " <>
-                show rssItemAttrs <> " " <>
-                show rssItemOther-}
-            ) rssItems
-        Just (RSS1Feed f) -> undefined
-        Just (XMLFeed element) -> undefined
-        Nothing -> undefined
+            let info = (\Element {
+                    elementName,
+                    elementNodes
+                } -> (
+                    nameLocalName elementName,
+                    (\(ContentText x) -> x) . (\(NodeContent x) -> x) $ head elementNodes
+                    )
+                        ) <$> rssItemOther
+            in NyaaRow {
+                title = fromMaybe "" rssItemTitle,
+                link = fromMaybe "" rssItemLink,
+                seeders = read . T.unpack <$> lookup "seeders" info :: Maybe Int,
+                leechers = read . T.unpack <$> lookup "leechers" info,
+                infoHash = lookup "infoHash" info
+            }
+            ) <$> rssItems
+        Just _ -> []
+        Nothing -> []
 
 queryPirate ∷ Text → ExceptT String IO [NyaaRow]
 queryPirate t = catchE (
