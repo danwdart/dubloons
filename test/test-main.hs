@@ -2,6 +2,9 @@ import Test.Hspec
 import Test.QuickCheck
 import Lib.Pirate.Nyaa
 
+prop_Reverse :: [a] -> Property
+prop_Reverse a = reverse (reverse a) === a
+
 prop_Ints :: Int -> Int -> Int -> Property
 prop_Ints a b c = "20" === "20"
 

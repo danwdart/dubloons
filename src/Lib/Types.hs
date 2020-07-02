@@ -1,17 +1,17 @@
 {-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax     #-}
 module Lib.Types where
 
-import           Data.Aeson
 import           Data.IORef
 import           Data.Map
 import           Data.Text
 import           Discord
 import           Discord.Types
-import           GHC.Generics
 
-class Row
+class Row a
 
 type Token = Text
 type Username = Text
@@ -19,7 +19,7 @@ type MessageText = Text
 type Query = Text
 type Command = Text
 type MessageResult = Either RestCallErrorCode Message
-data StateM = Row r => Map ChannelId (Map Int r)
+data StateM = forall a. Map ChannelId (Map Int a)
 type APIDomain = Text
 type TorrentClient = Text
 
