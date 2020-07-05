@@ -19,22 +19,8 @@ import           Text.Feed.Import
 import           Text.Feed.Types            hiding (RSSItem)
 import           Text.RSS.Syntax
 
-data NyaaRow = NyaaRow {
-    title       :: Text,
-    link        :: Text,
-    seeders     :: Maybe Int,
-    leechers    :: Maybe Int,
-    infoHash    :: Maybe Text
-} deriving (Row, Show)
-
 ua ∷ ByteString
 ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1 RuxitSynthetic/1.0 v966419272 t8706630810854404122 smf=0"
-
-magnetPrefix :: Text
-magnetPrefix = "magnet:?xt=urn:btih:"
-
-magnetSuffix :: Text
-magnetSuffix = "&tr=http%3A%2F%2Fnyaa.tracker.wf%3A7777%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce"
 
 getSearch ∷ Text → Req [NyaaRow]
 getSearch term = do
