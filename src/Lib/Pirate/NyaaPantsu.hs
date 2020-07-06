@@ -12,7 +12,7 @@ import           Data.Maybe
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import           Lib.Prelude
-import           Lib.Types
+import           Lib.Types as Types
 import           Network.HTTP.Req
 import           Text.Feed.Import
 import           Text.Feed.Types            hiding (RSSItem)
@@ -37,8 +37,18 @@ getSearch term = do
                 rssItemTitle,
                 rssItemLink
             } -> Row {
+                Types.id = "",
                 title = fromMaybe "" rssItemTitle,
-                infoHash = fromMaybe "" $ T.stripPrefix urlPrefix =<< rssItemLink
+                infoHash = fromMaybe "" $ T.stripPrefix urlPrefix =<< rssItemLink,
+                leechers = Nothing,
+                seeders = Nothing,
+                numFiles = Nothing,
+                size = Nothing,
+                username = Nothing,
+                added = Nothing,
+                status = Nothing,
+                category = Nothing,
+                imdb = Nothing
             }
             ) <$> rssItems
         Just _ -> []

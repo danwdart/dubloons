@@ -13,7 +13,7 @@ import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import           Data.XML.Types
 import           Lib.Prelude
-import           Lib.Types
+import           Lib.Types as Types
 import           Network.HTTP.Req
 import           Text.Feed.Import
 import           Text.Feed.Types            hiding (RSSItem)
@@ -34,7 +34,6 @@ getSearch term = do
         Just (RSSFeed (RSS _ _ RSSChannel {rssItems} _)) ->
             (\RSSItem {
                 rssItemTitle,
-                rssItemLink,
                 rssItemOther
             } ->
             let info = (\Element {
@@ -46,10 +45,18 @@ getSearch term = do
                     )
                         ) <$> rssItemOther
             in Row {
+                Types.id = "",
                 title = fromMaybe "" rssItemTitle,
                 seeders = read . T.unpack <$> lookup "seeders" info :: Maybe Int,
                 leechers = read . T.unpack <$> lookup "leechers" info,
-                infoHash = fromMaybe "" $ lookup "infoHash" info
+                infoHash = fromMaybe "" $ lookup "infoHash" info,
+                numFiles = Nothing,
+                size = Nothing,
+                username = Nothing,
+                added = Nothing,
+                status = Nothing,
+                category = Nothing,
+                imdb = Nothing
             }
             ) <$> rssItems
         Just _ -> []

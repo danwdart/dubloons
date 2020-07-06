@@ -24,7 +24,7 @@ data Row = Row {
     infoHash :: Text,
     leechers  :: Maybe Int,
     seeders   :: Maybe Int,
-    num_files :: Maybe Int,
+    numFiles :: Maybe Int,
     size      :: Maybe Int,
     username  :: Maybe Text,
     added     :: Maybe Text, -- todo date
@@ -57,7 +57,7 @@ trackers = [
     "udp://tracker.zer0day.to:1337/announce"
     ]
 
--- TODO calculate 
+-- TODO calculate properly with URIs
 magnetLink :: Row -> Text
 magnetLink Row { infoHash } = magnetPrefix <> infoHash <> "&tr=" <> T.intercalate "&tr=" trackers
 

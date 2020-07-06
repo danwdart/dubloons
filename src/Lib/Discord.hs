@@ -227,6 +227,7 @@ handleEvent dEnv h = \case
             cid,
             cguild
             )
+        _ -> putStrLn "Unsupported channel create message."
     TypingStart TypingInfo {
         typingUserId = uid,
         typingChannelId = cid
