@@ -24,7 +24,7 @@ ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.5
 urlPrefix :: Text
 urlPrefix = "https://nyaa.net/download/"
 
-getSearch ∷ Text → Req [NyaaPantsuRow]
+getSearch ∷ Text → Req [Row]
 getSearch term = do
     response <- req GET (https "nyaa.net" /: "feed") NoReqBody bsResponse
         $ header "User-Agent" ua
@@ -36,16 +36,15 @@ getSearch term = do
             (\RSSItem {
                 rssItemTitle,
                 rssItemLink
-            } -> NyaaPantsuRow {
+            } -> Row {
                 title = fromMaybe "" rssItemTitle,
-                link = fromMaybe "" rssItemLink,
-                infoHash = T.stripPrefix urlPrefix =<< rssItemLink
+                infoHash = fromMaybe "" $ T.stripPrefix urlPrefix =<< rssItemLink
             }
             ) <$> rssItems
         Just _ -> []
         Nothing -> []
 
-queryPirate ∷ Text → ExceptT String IO [NyaaPantsuRow]
+queryPirate ∷ Text → ExceptT String IO [Row]
 queryPirate t = catchE (
         ExceptT .
         try $ runReq defaultHttpConfig (getSearch t) -- torConfig

@@ -22,7 +22,7 @@ import           Text.RSS.Syntax
 ua ∷ ByteString
 ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1 RuxitSynthetic/1.0 v966419272 t8706630810854404122 smf=0"
 
-getSearch ∷ Text → Req [NyaaRow]
+getSearch ∷ Text → Req [Row]
 getSearch term = do
     response <- req GET (https "nyaa.si") NoReqBody bsResponse
         $ header "User-Agent" ua
@@ -45,18 +45,17 @@ getSearch term = do
                     (\(ContentText x) -> x) . (\(NodeContent x) -> x) $ head elementNodes
                     )
                         ) <$> rssItemOther
-            in NyaaRow {
+            in Row {
                 title = fromMaybe "" rssItemTitle,
-                link = fromMaybe "" rssItemLink,
                 seeders = read . T.unpack <$> lookup "seeders" info :: Maybe Int,
                 leechers = read . T.unpack <$> lookup "leechers" info,
-                infoHash = lookup "infoHash" info
+                infoHash = fromMaybe "" $ lookup "infoHash" info
             }
             ) <$> rssItems
         Just _ -> []
         Nothing -> []
 
-queryPirate ∷ Text → ExceptT String IO [NyaaRow]
+queryPirate ∷ Text → ExceptT String IO [Row]
 queryPirate t = catchE (
         ExceptT .
         try $ runReq defaultHttpConfig (getSearch t) -- torConfig

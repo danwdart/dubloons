@@ -11,7 +11,10 @@ import           Data.Text                  as T hiding (map, take, zip)
 import           Discord
 import           Discord.Requests
 import           Discord.Types
-import           Lib.Pirate.TPB
+-- todo indexify
+import qualified Lib.Pirate.TPB as TPB
+import qualified Lib.Pirate.Nyaa as N
+import qualified Lib.Pirate.NyaaPantsu as NP
 import           Lib.Prelude
 import           Lib.Types
 import           Prelude                    hiding (lookup, map, print, putStrLn, take, unwords,
@@ -28,7 +31,10 @@ sendMessage h cid = restCall h . CreateMessage cid
 getQuery ∷ Env → ChannelId -> DiscordHandle → Query → IO ()
 getQuery dEnv cid h query = do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
-    res <- runExceptT $ queryPirate apiDomain query
+    resTPB <- runExceptT $ TPB.queryPirate apiDomain query
+    resN <- runExceptT $ N.queryPirate query
+    resNP <- runExceptT $ NP.queryPirate query
+    let res = resTPB <> resN <> resNP
     case res of
         Left a → void $ sendMsg $ T.pack a
         Right results → do
@@ -47,7 +53,6 @@ getQuery dEnv cid h query = do
             show ix <>
             ": " <>
             show tpbRow
-            
 
 parseMsg ∷ Env →  ChannelId -> DiscordHandle → Query → Command → IO ()
 parseMsg dEnv cid h query = \case
@@ -69,12 +74,11 @@ parseMsg dEnv cid h query = \case
         torrentClient = envTorrentClient dEnv
         sendMsg = sendMessage h cid
         sendSpawned r = do
-            let magnetLink = magnetPrefix <> info_hash r <> magnetSuffix
             _ <- sendMsg "Yarr, I be spawnin' yer download!"
             _ <- spawnCommand $ -- TODO nohup this
                 torrentClient <>
                 " -- '" <>
-                magnetLink <>
+                magnetLink r <>
                 "'"
             void $ sendMsg "Yarr, I spawned yer download!"
 

@@ -18,82 +18,65 @@ import GHC.Generics
 magnetPrefix ∷ Text
 magnetPrefix = "magnet:?xt=urn:btih:"
 
-data Row = TPBRow {
+data Row = Row {
     id        :: Text,
-    name      :: Text,
-    info_hash :: Text,
-    leechers  :: Int,
-    seeders   :: Int,
-    num_files :: Int,
-    size      :: Int,
-    username  :: Text,
-    added     :: Text, -- todo date
-    status    :: Text,
-    category  :: Int,
+    title     :: Text,
+    infoHash :: Text,
+    leechers  :: Maybe Int,
+    seeders   :: Maybe Int,
+    num_files :: Maybe Int,
+    size      :: Maybe Int,
+    username  :: Maybe Text,
+    added     :: Maybe Text, -- todo date
+    status    :: Maybe Text,
+    category  :: Maybe Int,
     imdb      :: Maybe Text
-} | NyaaRow {
-    title       :: Text,
-    seeders     :: Maybe Int,
-    leechers    :: Maybe Int,
-    infoHash    :: Maybe Text
-} | NyaaPantsuRow {
-    title       :: Text,
-    infoHash    :: Maybe Text
 } deriving (Generic)
 
-trackersCommon, trackersTPB, trackersNyaa, trackersNyaaPantsu :: [Text]
-trackersCommon = [
-    "udp://tracker.coppersurfer.tk:6969/announce",
-    "udp://tracker.opentrackr.org:1337/announce"
-    ]
-trackersTPB = trackersCommon <> [
-    "udp://9.rarbg.to:2920/announce",
-    "udp://tracker.cyberia.is:6969/announce",
-    "udp://tracker.internetwarriors.net:1337/announce",
-    "udp://tracker.leechers-paradise.org:6969/announce",
-    "udp://tracker.pirateparty.gr:6969/announce"
-    ]
-trackersNyaa = trackersCommon <> [
-    "http://nyaa.tracker.wf:7777/announce",
-    "udp://exodus.desync.com:6969/announce",
-    "udp://open.stealth.si:80/announce"
-    ]
-trackersNyaaPantsu = trackersCommon <> [
+-- TODO make into URI objects
+trackers :: [Text]
+trackers = [
     "http://anidex.moe:6969/announce",
     "http://mgtracker.org:6969/announce",
     "http://nyaa.tracker.wf:7777/announce",
     "http://sukebei.tracker.wf:7777/announce",
     "http://tracker.anirena.com:80/announce",
+    "udp://9.rarbg.to:2920/announce",
+    "udp://exodus.desync.com:6969/announce",
     "udp://explodie.org:6969",
     "udp://ipv6.leechers-paradise.org:6969/announce",
+    "udp://open.stealth.si:80/announce",
+    "udp://tracker.coppersurfer.tk:6969/announce",
+    "udp://tracker.cyberia.is:6969/announce",
     "udp://tracker.internetwarriors.net:1337/announce",
     "udp://tracker.leechers-paradise.org:6969",
+    "udp://tracker.leechers-paradise.org:6969/announce",
+    "udp://tracker.opentrackr.org:1337/announce",
+    "udp://tracker.pirateparty.gr:6969/announce",
     "udp://tracker.uw0.xyz:6969/announce",
     "udp://tracker.zer0day.to:1337/announce"
     ]
 
+-- TODO calculate 
 magnetLink :: Row -> Text
-magnetLink TPBRow { info_hash } = magnetPrefix <> info_hash <> "&tr=udp://tracker.coppersurfer.tk:6969/announce&tr=udp://9.rarbg.to:2920/announce&tr=udp://tracker.opentrackr.org:1337&tr=udp://tracker.internetwarriors.net:1337/announce&tr=udp://tracker.leechers-paradise.org:6969/announce&tr=udp://tracker.coppersurfer.tk:6969/announce&tr=udp://tracker.pirateparty.gr:6969/announce&tr=udp://tracker.cyberia.is:6969/announceinfo_hash"
-magnetLink NyaaRow { infoHash } = magnetPrefix <> infohash <> "&tr=http://nyaa.tracker.wf:7777/announce&tr=udp://open.stealth.si:80/announce&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://tracker.coppersurfer.tk:6969/announce&tr=udp://exodus.desync.com:6969/announce"
-magnetLink NyaaPantsuRow { infoHash } = magnetPrefix <> infoHash <> "&tr=udp://tracker.uw0.xyz:6969/announce&tr=udp://tracker.coppersurfer.tk:6969&tr=udp://tracker.zer0day.to:1337/announce&tr=udp://tracker.leechers-paradise.org:6969&tr=udp://explodie.org:6969&tr=udp://tracker.opentrackr.org:1337&tr=udp://tracker.internetwarriors.net:1337/announce&tr=http://mgtracker.org:6969/announce&tr=udp://ipv6.leechers-paradise.org:6969/announce&tr=http://nyaa.tracker.wf:7777/announce&tr=http://sukebei.tracker.wf:7777/announce&tr=http://tracker.anirena.com:80/announce&tr=http://anidex.moe:6969/announce&tr=udp://tracker.uw0.xyz:6969/announce&tr=udp://tracker.coppersurfer.tk:6969&tr=udp://tracker.zer0day.to:1337/announce&tr=udp://tracker.leechers-paradise.org:6969&tr=udp://explodie.org:6969&tr=udp://tracker.opentrackr.org:1337&tr=udp://tracker.internetwarriors.net:1337/announce&tr=http://mgtracker.org:6969/announce&tr=udp://ipv6.leechers-paradise.org:6969/announce&tr=http://nyaa.tracker.wf:7777/announce&tr=http://sukebei.tracker.wf:7777/announce&tr=http://tracker.anirena.com:80/announce&tr=http://anidex.moe:6969/announce"
+magnetLink Row { infoHash } = magnetPrefix <> infoHash <> "&tr=" <> T.intercalate "&tr=" trackers
 
 instance Show Row where
-    show TPBRow {
-        name = rowName,
+    show Row {
+        title = rowTitle,
         leechers = rowLeechers,
         seeders = rowSeeders,
         imdb = rowIMDB
-    } = T.unpack rowName <>
+    } = T.unpack rowTitle <>
         " (" <>
         show rowSeeders <>
         " seeders, " <>
         show rowLeechers <>
         " leechers)." <>
         maybe mempty (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB
-    show _ = "Not yet defined."
 
 instance FromJSON Row where
-    parseJSON (Object value) = TPBRow <$>
+    parseJSON (Object value) = Row <$>
         value .: "id" <*>
         value .: "name" <*>
         value .: "info_hash" <*>
