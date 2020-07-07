@@ -48,6 +48,24 @@ sendEmbed h cid text = restCall h (CreateMessageEmbed cid text (CreateEmbed {
     createEmbedFooterIcon = Nothing
     }))
 
+sendEmbedRow :: DiscordHandle -> ChannelId -> Row -> IO MessageResult
+sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
+    createEmbedAuthorName = T.pack $ show (source row), 
+    createEmbedAuthorUrl = "",
+    createEmbedAuthorIcon = Nothing,
+    createEmbedTitle = title row,
+    createEmbedUrl = "https://itorrents.org/torrent/" <> infoHash row <> ".torrent",  -- magnet:?xt=urn:btih:B005AA
+    createEmbedThumbnail = Nothing,
+    createEmbedDescription = "",
+    createEmbedImage = Nothing,
+    createEmbedFields = 
+        maybe [] (\s -> [EmbedField "Seeders" (T.pack $ show s) Nothing]) (seeders row) <>
+        maybe [] (\l -> [EmbedField "Leechers" (T.pack $ show l) Nothing]) (leechers row) <>
+        maybe [] (\i -> [EmbedField "IMDB" ("https://imdb.com/tt" <> T.pack $ show i) Nothing]) (imdb row),
+    createEmbedFooterText = "",
+    createEmbedFooterIcon = Nothing
+    }))
+
 getQuery ∷ Env → ChannelId → DiscordHandle → Query → IO ()
 getQuery dEnv cid h query = do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
@@ -56,48 +74,16 @@ getQuery dEnv cid h query = do
     resNP <- runExceptT $ NP.queryPirate query
     let results = concat =<< [resTPB, resN, resNP]
     let r = zip [1..] results
-    _ <- sendMsg $ "Yarrrr, I got ye " <> query <> " for ye!"
-    _ <- modifyIORef ir $ insert cid r
-    _ <- sendMsg $ "Yarrrr, I stored ye " <> query <> " for ye! Here they be:"
-    mapM_ sendMsg $ mapWithKey textualise $ take 20 r
-    void . sendMsg $ "Yarr, that be it! Ye can be pickin'! Ye says fer example 'dl 2' fer gettin' ye yer second pick! Arr!"
+    mapM_ sendMsgRow (take 20 r)
     where
-        ir = envStateM dEnv
         apiDomain = envApiDomain dEnv
         sendMsg = sendMessage h cid
-        textualise ix tpbRow = T.pack $
-            show ix <>
-            ": " <>
-            show tpbRow
+        sendMsgRow = sendEmbedRow h cid
 
 parseMsg ∷ Env →  ChannelId → DiscordHandle → Query → Command → IO ()
 parseMsg dEnv cid h query = \case
-    "cache" → print =<< readCache h
     "get" → getQuery dEnv cid h query
-    "testEmbed" -> void $ sendEmbed h cid "embed test message"
-    "results" → do
-        let ir = envStateM dEnv
-        v <- readIORef ir
-        _ <- sendMsg "Arrr, results:"
-        mapM_ (sendMsg . T.pack . show) v
-    "dl" → do
-        let ir = envStateM dEnv
-        v <- readIORef ir
-        let result = lookup (read . T.unpack $ query) =<< lookup cid v
-        -- void . sendMsg . T.pack $ show $ result) v
-        maybe (void $ sendMsg "Yarr, that weren't existin'!") sendSpawned result
     _ → return ()
-    where
-        torrentClient = envTorrentClient dEnv
-        sendMsg = sendMessage h cid
-        sendSpawned r = do
-            _ <- sendMsg "Yarr, I be spawnin' yer download!"
-            _ <- spawnCommand $ -- TODO nohup this
-                torrentClient <>
-                " -- '" <>
-                magnetLink r <>
-                "'"
-            void $ sendMsg "Yarr, I spawned yer download!"
 
 handleMessage ∷ Env → Username → ChannelId → DiscordHandle → MessageText → IO ()
 handleMessage dEnv un cid h = \case

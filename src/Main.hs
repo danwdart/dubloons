@@ -72,10 +72,8 @@ main = void $ runExceptT $ do
         torrentClient
         ] <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
     putStrLn "Starting bot"
-    stateM <- newIORef empty
     _ <- io . runDiscord $
         runDiscordOpts Env {
-            envStateM = stateM,
             envToken = token,
             envCID = fromIntegral $ read (T.unpack cid),
             envGID = fromIntegral $ read (T.unpack gid),

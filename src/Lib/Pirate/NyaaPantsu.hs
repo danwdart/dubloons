@@ -38,6 +38,7 @@ getSearch term = do
                 rssItemLink
             } -> Row {
                 Types.id = "",
+                source = NyaaPantsu,
                 title = fromMaybe "" rssItemTitle,
                 infoHash = fromMaybe "" $ T.stripPrefix urlPrefix =<< rssItemLink,
                 leechers = Nothing,

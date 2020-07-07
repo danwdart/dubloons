@@ -46,6 +46,7 @@ getSearch term = do
                         ) <$> rssItemOther
             in Row {
                 Types.id = "",
+                source = Nyaa,
                 title = fromMaybe "" rssItemTitle,
                 seeders = read . T.unpack <$> lookup "seeders" info :: Maybe Int,
                 leechers = read . T.unpack <$> lookup "leechers" info,

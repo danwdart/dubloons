@@ -8,19 +8,17 @@
 module Lib.Types where
 
 import           Data.Aeson
-import           Data.IORef
-import           Data.Map
 import           Data.Text     as T
 import           Discord
 import           Discord.Types
 import           GHC.Generics
 import           Text.Read
 
-magnetPrefix ∷ Text
-magnetPrefix = "magnet:?xt=urn:btih:"
+data Source = TPB | Nyaa | NyaaPantsu deriving (Show)
 
 data Row = Row {
     id       :: Text,
+    source   :: Source,
     title    :: Text,
     infoHash :: Text,
     leechers :: Maybe Int,
@@ -34,52 +32,10 @@ data Row = Row {
     imdb     :: Maybe Text
 } deriving (Generic)
 
--- TODO make into URI objects
-trackers ∷ [Text]
-trackers = [
-    "http://anidex.moe:6969/announce",
-    "http://mgtracker.org:6969/announce",
-    "http://nyaa.tracker.wf:7777/announce",
-    "http://sukebei.tracker.wf:7777/announce",
-    "http://tracker.anirena.com:80/announce",
-    "udp://9.rarbg.to:2920/announce",
-    "udp://exodus.desync.com:6969/announce",
-    "udp://explodie.org:6969",
-    "udp://ipv6.leechers-paradise.org:6969/announce",
-    "udp://open.stealth.si:80/announce",
-    "udp://tracker.coppersurfer.tk:6969/announce",
-    "udp://tracker.cyberia.is:6969/announce",
-    "udp://tracker.internetwarriors.net:1337/announce",
-    "udp://tracker.leechers-paradise.org:6969",
-    "udp://tracker.leechers-paradise.org:6969/announce",
-    "udp://tracker.opentrackr.org:1337/announce",
-    "udp://tracker.pirateparty.gr:6969/announce",
-    "udp://tracker.uw0.xyz:6969/announce",
-    "udp://tracker.zer0day.to:1337/announce"
-    ]
-
--- TODO calculate properly with URIs
-magnetLink ∷ Row → Text
-magnetLink Row { infoHash } = magnetPrefix <> infoHash <> "&tr=" <> T.intercalate "&tr=" trackers
-
-instance Show Row where
-    show Row {
-        title = rowTitle,
-        leechers = rowLeechers,
-        seeders = rowSeeders,
-        imdb = rowIMDB,
-        infoHash = rowInfoHash
-    } = T.unpack rowTitle <>
-        " (" <>
-        maybe "unknown" show rowSeeders <> " seeders, " <>
-        maybe "unknown" show rowLeechers <> " leechers)" <>
-        maybe "" (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB <>
-        -- TODO embed this!
-        ": https://itorrents.org/torrent/" <> T.unpack rowInfoHash <> ".torrent"
-
 instance FromJSON Row where
     parseJSON (Object value) = Row <$>
         value .: "id" <*>
+        return TPB <*>
         value .: "name" <*>
         value .: "info_hash" <*>
         (readMaybe <$> value .: "leechers") <*>
@@ -102,12 +58,10 @@ type MessageText = Text
 type Query = Text
 type Command = Text
 type MessageResult = Either RestCallErrorCode Message
-type StateM = Map ChannelId (Map Int Row)
 type APIDomain = Text
 type TorrentClient = Text
 
 data Env = Env {
-    envStateM        :: IORef StateM,
     envToken         :: Token,
     envCID           :: ChannelId,
     envGID           :: GuildId,
