@@ -58,7 +58,7 @@ getDubloonsEnv var err = catchE (
 
 main ∷ IO ()
 main = void $ runExceptT $ do
-    putStrLn "Dubloons v0.4"
+    putStrLn "Dubloons v0.5"
     putStrLn "Loading environment variables"
     {-
         env <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
