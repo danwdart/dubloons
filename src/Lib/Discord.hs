@@ -28,6 +28,26 @@ handleStart dEnv h = do
 sendMessage ∷ DiscordHandle → ChannelId → MessageText → IO MessageResult
 sendMessage h cid = restCall h . CreateMessage cid
 
+sendEmbed :: DiscordHandle -> ChannelId -> MessageText -> IO MessageResult
+sendEmbed h cid text = restCall h (CreateMessageEmbed cid text (CreateEmbed {
+    createEmbedAuthorName = "", 
+    createEmbedAuthorUrl = "",
+    createEmbedAuthorIcon = Nothing,
+    createEmbedTitle = "The Magnet: (a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>",
+    createEmbedUrl = "",  -- magnet:?xt=urn:btih:B005AA
+    createEmbedThumbnail = Nothing,
+    createEmbedDescription = "(a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>",
+    createEmbedFields = [
+        EmbedField "Seeders" "1" Nothing,
+        EmbedField "Leechers" "2" (Just True),
+        EmbedField "User" "Bob" (Just False),
+        EmbedField "Link" "(a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>" Nothing
+        ],
+    createEmbedImage = Nothing,
+    createEmbedFooterText = "(a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>",
+    createEmbedFooterIcon = Nothing
+    }))
+
 getQuery ∷ Env → ChannelId → DiscordHandle → Query → IO ()
 getQuery dEnv cid h query = do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
@@ -54,6 +74,7 @@ parseMsg ∷ Env →  ChannelId → DiscordHandle → Query → Command → IO (
 parseMsg dEnv cid h query = \case
     "cache" → print =<< readCache h
     "get" → getQuery dEnv cid h query
+    "testEmbed" -> void $ sendEmbed h cid "embed test message"
     "results" → do
         let ir = envStateM dEnv
         v <- readIORef ir

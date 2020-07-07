@@ -67,12 +67,15 @@ instance Show Row where
         title = rowTitle,
         leechers = rowLeechers,
         seeders = rowSeeders,
-        imdb = rowIMDB
+        imdb = rowIMDB,
+        infoHash = rowInfoHash
     } = T.unpack rowTitle <>
         " (" <>
         maybe "unknown" show rowSeeders <> " seeders, " <>
         maybe "unknown" show rowLeechers <> " leechers)" <>
-        maybe "" (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB
+        maybe "" (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB <>
+        -- TODO embed this!
+        ": https://itorrents.org/torrent/" <> T.unpack rowInfoHash <> ".torrent"
 
 instance FromJSON Row where
     parseJSON (Object value) = Row <$>
