@@ -7,7 +7,7 @@ module Lib.Discord where
 import           Control.Monad
 import           Control.Monad.Trans.Except
 import           Data.Map.Strict
-import           Data.Text                  as T hiding (map, take, zip)
+import           Data.Text                  as T hiding (concat, map, take, zip)
 import           Discord
 import           Discord.Requests
 import           Discord.Types
@@ -32,15 +32,9 @@ getQuery ∷ Env → ChannelId → DiscordHandle → Query → IO ()
 getQuery dEnv cid h query = do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
     resTPB <- runExceptT $ TPB.queryPirate apiDomain query
-    putStrLn "**** TPB ***"
-    print resTPB
     resN <- runExceptT $ N.queryPirate query
-    putStrLn "*** N ***"
-    print resN
     resNP <- runExceptT $ NP.queryPirate query
-    putStrLn "*** NP ***"
-    print resNP
-    let results = Prelude.concat =<< [resTPB, resN, resNP]
+    let results = concat =<< [resTPB, resN, resNP]
     let r = zip [1..] results
     _ <- sendMsg $ "Yarrrr, I got ye " <> query <> " for ye!"
     _ <- modifyIORef ir $ insert cid r
