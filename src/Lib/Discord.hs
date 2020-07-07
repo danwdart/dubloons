@@ -25,26 +25,28 @@ handleStart dEnv h = do
     putStrLn "Start handler called"
     void $ sendMessage h (envCID dEnv) "-- Arrr, I be here! --"
 
-sendMessage ∷ DiscordHandle → ChannelId -> MessageText → IO MessageResult
+sendMessage ∷ DiscordHandle → ChannelId → MessageText → IO MessageResult
 sendMessage h cid = restCall h . CreateMessage cid
 
-getQuery ∷ Env → ChannelId -> DiscordHandle → Query → IO ()
+getQuery ∷ Env → ChannelId → DiscordHandle → Query → IO ()
 getQuery dEnv cid h query = do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
     resTPB <- runExceptT $ TPB.queryPirate apiDomain query
+    putStrLn "**** TPB ***"
+    print resTPB
     resN <- runExceptT $ N.queryPirate query
+    putStrLn "*** N ***"
+    print resN
     resNP <- runExceptT $ NP.queryPirate query
-    let res = resTPB <> resN <> resNP
-    case res of
-        Left a → void $ sendMsg $ T.pack a
-        Right results → do
-            print results
-            let r = zip [1..] results
-            _ <- sendMsg $ "Yarrrr, I got ye " <> query <> " for ye!"
-            _ <- modifyIORef ir $ insert cid r
-            _ <- sendMsg $ "Yarrrr, I stored ye " <> query <> " for ye! Here they be:"
-            mapM_ sendMsg $ mapWithKey textualise $ take 10 r
-            void . sendMsg $ "Yarr, that be it! Ye can be pickin'! Ye says fer example 'dl 2' fer gettin' ye yer second pick! Arr!"
+    putStrLn "*** NP ***"
+    print resNP
+    let results = Prelude.concat =<< [resTPB, resN, resNP]
+    let r = zip [1..] results
+    _ <- sendMsg $ "Yarrrr, I got ye " <> query <> " for ye!"
+    _ <- modifyIORef ir $ insert cid r
+    _ <- sendMsg $ "Yarrrr, I stored ye " <> query <> " for ye! Here they be:"
+    mapM_ sendMsg $ mapWithKey textualise $ take 20 r
+    void . sendMsg $ "Yarr, that be it! Ye can be pickin'! Ye says fer example 'dl 2' fer gettin' ye yer second pick! Arr!"
     where
         ir = envStateM dEnv
         apiDomain = envApiDomain dEnv
@@ -54,7 +56,7 @@ getQuery dEnv cid h query = do
             ": " <>
             show tpbRow
 
-parseMsg ∷ Env →  ChannelId -> DiscordHandle → Query → Command → IO ()
+parseMsg ∷ Env →  ChannelId → DiscordHandle → Query → Command → IO ()
 parseMsg dEnv cid h query = \case
     "cache" → print =<< readCache h
     "get" → getQuery dEnv cid h query
@@ -82,7 +84,7 @@ parseMsg dEnv cid h query = \case
                 "'"
             void $ sendMsg "Yarr, I spawned yer download!"
 
-handleMessage ∷ Env → Username → ChannelId -> DiscordHandle → MessageText → IO ()
+handleMessage ∷ Env → Username → ChannelId → DiscordHandle → MessageText → IO ()
 handleMessage dEnv un cid h = \case
     "/hello" → void $ sendMsg $ "Ahoy, matey, " <> un <> "!"
     "/status" → void $ sendMsg "Yarr, all hands on deck!"
@@ -227,7 +229,7 @@ handleEvent dEnv h = \case
             cid,
             cguild
             )
-        _ -> putStrLn "Unsupported channel create message."
+        _ → putStrLn "Unsupported channel create message."
     TypingStart TypingInfo {
         typingUserId = uid,
         typingChannelId = cid

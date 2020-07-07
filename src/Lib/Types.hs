@@ -1,40 +1,41 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric             #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LAnGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE UnicodeSyntax     #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE NamedFieldPuns            #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE UnicodeSyntax             #-}
 
 module Lib.Types where
 
-import Data.Aeson
+import           Data.Aeson
 import           Data.IORef
 import           Data.Map
-import           Data.Text as T
+import           Data.Text     as T
 import           Discord
 import           Discord.Types
-import GHC.Generics
+import           GHC.Generics
+import           Text.Read
 
 magnetPrefix ∷ Text
 magnetPrefix = "magnet:?xt=urn:btih:"
 
 data Row = Row {
-    id        :: Text,
-    title     :: Text,
+    id       :: Text,
+    title    :: Text,
     infoHash :: Text,
-    leechers  :: Maybe Int,
-    seeders   :: Maybe Int,
+    leechers :: Maybe Int,
+    seeders  :: Maybe Int,
     numFiles :: Maybe Int,
-    size      :: Maybe Int,
-    username  :: Maybe Text,
-    added     :: Maybe Text, -- todo date
-    status    :: Maybe Text,
-    category  :: Maybe Int,
-    imdb      :: Maybe Text
+    size     :: Maybe Int,
+    username :: Maybe Text,
+    added    :: Maybe Text, -- todo date
+    status   :: Maybe Text,
+    category :: Maybe Int,
+    imdb     :: Maybe Text
 } deriving (Generic)
 
 -- TODO make into URI objects
-trackers :: [Text]
+trackers ∷ [Text]
 trackers = [
     "http://anidex.moe:6969/announce",
     "http://mgtracker.org:6969/announce",
@@ -58,7 +59,7 @@ trackers = [
     ]
 
 -- TODO calculate properly with URIs
-magnetLink :: Row -> Text
+magnetLink ∷ Row → Text
 magnetLink Row { infoHash } = magnetPrefix <> infoHash <> "&tr=" <> T.intercalate "&tr=" trackers
 
 instance Show Row where
@@ -69,26 +70,24 @@ instance Show Row where
         imdb = rowIMDB
     } = T.unpack rowTitle <>
         " (" <>
-        show rowSeeders <>
-        " seeders, " <>
-        show rowLeechers <>
-        " leechers)." <>
-        maybe mempty (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB
+        maybe "unknown" show rowSeeders <> " seeders, " <>
+        maybe "unknown" show rowLeechers <> " leechers)" <>
+        maybe "" (T.unpack . (" https://imdb.com/title/" <>)) rowIMDB
 
 instance FromJSON Row where
     parseJSON (Object value) = Row <$>
         value .: "id" <*>
         value .: "name" <*>
         value .: "info_hash" <*>
-        (read <$> value .: "leechers") <*>
-        (read <$> value .: "seeders") <*>
-        (read <$> value .: "num_files") <*>
-        (read <$> value .: "size") <*>
-        value .: "username" <*>
-        value .: "added" <*>
-        value .: "status" <*>
-        (read <$> value .: "category") <*>
-        ((\imdbID -> if imdbID == ""
+        (readMaybe <$> value .: "leechers") <*>
+        (readMaybe <$> value .: "seeders") <*>
+        (readMaybe <$> value .: "num_files") <*>
+        (readMaybe <$> value .: "size") <*>
+        value .:? "username" <*>
+        value .:? "added" <*>
+        value .:? "status" <*>
+        (readMaybe <$> value .: "category") <*>
+        ((\imdbID -> if T.null imdbID
             then Nothing
             else Just imdbID
         ) <$> value .: "imdb")
