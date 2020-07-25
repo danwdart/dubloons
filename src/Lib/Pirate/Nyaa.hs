@@ -12,7 +12,7 @@ import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import           Data.XML.Types
 import           Lib.Prelude
-import           Lib.Types as Types
+import           Lib.Types                  as Types
 import           Network.HTTP.Req
 import           Text.Feed.Import
 import           Text.Feed.Types            hiding (RSSItem)

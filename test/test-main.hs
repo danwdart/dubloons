@@ -2,17 +2,14 @@ import Test.Hspec
 import Test.QuickCheck
 import Lib.Pirate.Nyaa
 
-prop_Reverse :: [a] -> Property
-prop_Reverse a = reverse (reverse a) === a
-
 prop_Ints :: Int -> Int -> Int -> Property
 prop_Ints a b c = "20" === "20"
 
 main :: IO ()
-main = hspec $ do
-    describe "nyaa" $ do
-        it "tests" $ do
+main = hspec $
+    describe "nyaa" $
+        it "tests" $
             1 `shouldBe` 1
-        it "tests by quickcheck" $ do
+        it "tests by quickcheck" $
             quickCheck prop_Ints
             

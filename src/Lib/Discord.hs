@@ -4,22 +4,24 @@
 
 module Lib.Discord where
 
-import Control.Concurrent
+import           Control.Concurrent
 import           Control.Monad
 import           Control.Monad.Trans.Except
-import           Data.Map.Strict
-import           Data.Text                  as T hiding (concat, map, take, zip)
+import           Data.Map.Strict            hiding (null)
+import           Data.Text                  as T hiding (concat, head, map,
+                                                  null, tail, take, zip)
 import           Discord
 import           Discord.Requests
 import           Discord.Types
 -- todo indexify
-import qualified Lib.Pirate.TPB as TPB
-import qualified Lib.Pirate.Nyaa as N
-import qualified Lib.Pirate.NyaaPantsu as NP
+import qualified Lib.Pirate.Nyaa            as N
+import qualified Lib.Pirate.NyaaPantsu      as NP
+import qualified Lib.Pirate.TPB             as TPB
 import           Lib.Prelude
 import           Lib.Types
-import           Prelude                    hiding (lookup, map, print, putStrLn, take, unwords,
-                                             words, zip)
+import           Prelude                    hiding (lookup, map, print,
+                                             putStrLn, take, unwords, words,
+                                             zip)
 
 handleStart ∷ Env → DiscordHandle → IO ()
 handleStart dEnv h = do
@@ -29,9 +31,9 @@ handleStart dEnv h = do
 sendMessage ∷ DiscordHandle → ChannelId → MessageText → IO MessageResult
 sendMessage h cid = restCall h . CreateMessage cid
 
-sendEmbedRow :: DiscordHandle -> ChannelId -> Row -> IO MessageResult
+sendEmbedRow ∷ DiscordHandle → ChannelId → Row → IO MessageResult
 sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
-    createEmbedAuthorName = T.pack $ show (source row), 
+    createEmbedAuthorName = T.pack $ show (source row),
     createEmbedAuthorUrl = "",
     createEmbedAuthorIcon = Nothing,
     createEmbedTitle = title row,
@@ -39,10 +41,10 @@ sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
     createEmbedThumbnail = Nothing,
     createEmbedDescription = "",
     createEmbedImage = Nothing,
-    createEmbedFields = 
+    createEmbedFields =
         maybe [] (\s -> [EmbedField "Seeders" (T.pack $ show s) Nothing]) (seeders row) <>
         maybe [] (\l -> [EmbedField "Leechers" (T.pack $ show l) Nothing]) (leechers row) <>
-        maybe [] (\i -> [EmbedField "IMDB" ((T.pack "https://imdb.com/title/") <> i) Nothing]) (imdb row),
+        maybe [] (\i -> [EmbedField "IMDB" (T.pack "https://imdb.com/title/" <> i) Nothing]) (imdb row),
     createEmbedFooterText = "",
     createEmbedFooterIcon = Nothing
     }))
@@ -56,7 +58,7 @@ getQuery dEnv cid h query = void $ forkIO $ do
     let results = concat =<< [resTPB, resN, resNP]
     let r = zip [1..] results
     mapM_ sendMsgRow (take 20 r)
-    when (Prelude.null results) $
+    when (null results) $
         void . sendMsg $ "Yarrrr, there be nothin' fer " <> query <> "!"
     where
         apiDomain = envApiDomain dEnv
@@ -83,13 +85,13 @@ handleMessage dEnv un cid h = \case
         stopDiscord h
     msg → do
         -- TODO pattern match had an issue so wat
-        putStrLn $ un <> " said: " <> msg <> " in " <> (T.pack $ show cid)
+        putStrLn $ un <> " said: " <> msg <> " in " <> T.pack (show cid)
         let w = T.words msg
-        if (Prelude.null w) then
+        if null w then
             putStrLn "Empty message?"
         else do
-            let cmd = Prelude.head w
-            let queries = Prelude.tail w
+            let cmd = head w
+            let queries = tail w
             let query = T.unwords queries
             parseMsg dEnv cid h query cmd
     where

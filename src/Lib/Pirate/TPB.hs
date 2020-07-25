@@ -1,26 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax     #-}
-{-# OPTIONS_GHC -Wall -Werror -Wno-type-defaults -Wno-unused-imports #-}
 
 module Lib.Pirate.TPB where
 
 import           Control.Exception
-import Control.Monad
-import           Control.Monad.IO.Class     (liftIO)
-import           Control.Monad.Trans
 import           Control.Monad.Trans.Except
-import           Control.Retry
-import           Data.Aeson
-import qualified Data.ByteString.Char8      as B
-import           Data.Function
-import           Data.Functor
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
-import           GHC.Generics
 import           Lib.Types
 import           Network.HTTP.Client        hiding (responseBody)
 import           Network.HTTP.Req
-import           System.IO
 
 -- Don't error on 404. We just wanna check it.
 torConfig ∷ HttpConfig

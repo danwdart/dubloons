@@ -1,12 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax     #-}
-{-# OPTIONS_GHC -Wall -Werror -Wno-type-defaults #-}
 
 module Main where
 
 import           Control.Exception
 import           Control.Monad hiding (fail)
-import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Except
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
@@ -56,13 +54,9 @@ getDubloonsEnv var err = catchE (
 
 main ∷ IO ()
 main = void $ runExceptT $ do
-    liftIO . hSetBuffering stdout $ LineBuffering
+    io . hSetBuffering stdout $ LineBuffering
     putStrLn "Dubloons v0.5"
     putStrLn "Loading environment variables"
-    {-
-        env <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
-        foldl (\a b -> a <*> b) (Env <$> liftIO (newIORef []))
-    -}
     [
         token,
         cid,
