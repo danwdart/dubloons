@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax     #-}
-{-# OPTIONS_GHC -Wall -Werror -Wno-type-defaults -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wall -Werror -Wno-type-defaults #-}
 
 module Main where
 
@@ -10,14 +10,12 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Except
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
-import Data.Map
-import           Debug.Trace
 import           Discord
 import           Lib.Discord
-import           Lib.Pirate.TPB
 import           Lib.Prelude
 import           Lib.Types
 import           Prelude                    hiding (fail, print, putStrLn)
+import           System.IO hiding (putStrLn)
 import           System.IO.Error
 
 type EnvVariable = Text
@@ -58,6 +56,7 @@ getDubloonsEnv var err = catchE (
 
 main ∷ IO ()
 main = void $ runExceptT $ do
+    liftIO . hSetBuffering stdout $ LineBuffering
     putStrLn "Dubloons v0.5"
     putStrLn "Loading environment variables"
     {-

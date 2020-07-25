@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax     #-}
 {-# OPTIONS_GHC -Wall -Werror -Wno-type-defaults -Wno-unused-imports #-}
@@ -7,6 +5,7 @@
 module Lib.Pirate.TPB where
 
 import           Control.Exception
+import Control.Monad
 import           Control.Monad.IO.Class     (liftIO)
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Except
@@ -37,7 +36,7 @@ getSearch apiDomain term = req GET (https apiDomain /: "q.php") NoReqBody jsonRe
 queryPirate ∷ APIDomain → Text → ExceptT String IO [Row]
 queryPirate apiDomain t = catchE (
         ExceptT .
-        try $ responseBody <$> runReq defaultHttpConfig (getSearch apiDomain t) -- torConfig
+        try $ filter (\x -> title x /= "No results returned") . responseBody <$> runReq defaultHttpConfig (getSearch apiDomain t) -- torConfig
     ) (
         \(SomeException e) →
             ExceptT .

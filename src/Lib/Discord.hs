@@ -4,6 +4,7 @@
 
 module Lib.Discord where
 
+import Control.Concurrent
 import           Control.Monad
 import           Control.Monad.Trans.Except
 import           Data.Map.Strict
@@ -28,26 +29,6 @@ handleStart dEnv h = do
 sendMessage ∷ DiscordHandle → ChannelId → MessageText → IO MessageResult
 sendMessage h cid = restCall h . CreateMessage cid
 
-sendEmbed :: DiscordHandle -> ChannelId -> MessageText -> IO MessageResult
-sendEmbed h cid text = restCall h (CreateMessageEmbed cid text (CreateEmbed {
-    createEmbedAuthorName = "", 
-    createEmbedAuthorUrl = "",
-    createEmbedAuthorIcon = Nothing,
-    createEmbedTitle = "The Magnet: (a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>",
-    createEmbedUrl = "",  -- magnet:?xt=urn:btih:B005AA
-    createEmbedThumbnail = Nothing,
-    createEmbedDescription = "(a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>",
-    createEmbedFields = [
-        EmbedField "Seeders" "1" Nothing,
-        EmbedField "Leechers" "2" (Just True),
-        EmbedField "User" "Bob" (Just False),
-        EmbedField "Link" "(a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>" Nothing
-        ],
-    createEmbedImage = Nothing,
-    createEmbedFooterText = "(a)[b] <a href=\"magnet:?xt=urn:btih:B005AA\">AAA</a>",
-    createEmbedFooterIcon = Nothing
-    }))
-
 sendEmbedRow :: DiscordHandle -> ChannelId -> Row -> IO MessageResult
 sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
     createEmbedAuthorName = T.pack $ show (source row), 
@@ -61,13 +42,13 @@ sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
     createEmbedFields = 
         maybe [] (\s -> [EmbedField "Seeders" (T.pack $ show s) Nothing]) (seeders row) <>
         maybe [] (\l -> [EmbedField "Leechers" (T.pack $ show l) Nothing]) (leechers row) <>
-        maybe [] (\i -> [EmbedField "IMDB" ("https://imdb.com/tt" <> T.pack $ show i) Nothing]) (imdb row),
+        maybe [] (\i -> [EmbedField "IMDB" ((T.pack "https://imdb.com/title/") <> i) Nothing]) (imdb row),
     createEmbedFooterText = "",
     createEmbedFooterIcon = Nothing
     }))
 
 getQuery ∷ Env → ChannelId → DiscordHandle → Query → IO ()
-getQuery dEnv cid h query = do
+getQuery dEnv cid h query = void $ forkIO $ do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
     resTPB <- runExceptT $ TPB.queryPirate apiDomain query
     resN <- runExceptT $ N.queryPirate query
@@ -75,6 +56,8 @@ getQuery dEnv cid h query = do
     let results = concat =<< [resTPB, resN, resNP]
     let r = zip [1..] results
     mapM_ sendMsgRow (take 20 r)
+    when (Prelude.null results) $
+        void . sendMsg $ "Yarrrr, there be nothin' fer " <> query <> "!"
     where
         apiDomain = envApiDomain dEnv
         sendMsg = sendMessage h cid
@@ -99,9 +82,16 @@ handleMessage dEnv un cid h = \case
         putStrLn "Received quit message"
         stopDiscord h
     msg → do
-        let (cmd : queries) = T.words msg
-        let query = T.unwords queries
-        parseMsg dEnv cid h query cmd
+        -- TODO pattern match had an issue so wat
+        putStrLn $ un <> " said: " <> msg <> " in " <> (T.pack $ show cid)
+        let w = T.words msg
+        if (Prelude.null w) then
+            putStrLn "Empty message?"
+        else do
+            let cmd = Prelude.head w
+            let queries = Prelude.tail w
+            let query = T.unwords queries
+            parseMsg dEnv cid h query cmd
     where
         sendMsg = sendMessage h cid
 
@@ -124,33 +114,34 @@ handleEvent dEnv h = \case
         messagePinned = isPinned,
         messageGuild = gid
     } → do
-        let un = userName author
-        putStrLn $
-            un <>
-            "#" <>
-            userDiscrim author <>
-            " said: " <>
-            msg <>
-            " in gid: " <>
-            T.pack (show gid)
-        putStrLn $ "MessageCreate " <> show (
-            mid,
-            cid,
-            author,
-            msg,
-            time,
-            timeEdited,
-            tts,
-            isEveryone,
-            mentions,
-            mentionRoles,
-            attachments,
-            embeds,
-            nonce,
-            isPinned,
-            gid
-            )
-        handleMessage dEnv un cid h msg
+        unless (userIsBot author) $ do
+            let un = userName author
+            putStrLn $
+                un <>
+                "#" <>
+                userDiscrim author <>
+                " said: " <>
+                msg <>
+                " in gid: " <>
+                T.pack (show gid)
+            putStrLn $ "MessageCreate " <> show (
+                mid,
+                cid,
+                author,
+                msg,
+                time,
+                timeEdited,
+                tts,
+                isEveryone,
+                mentions,
+                mentionRoles,
+                attachments,
+                embeds,
+                nonce,
+                isPinned,
+                gid
+                )
+            handleMessage dEnv un cid h msg
     Ready i user cids gidsunavailable txt →
         putStrLn $
         "Received Ready event. Details: " <>
@@ -250,6 +241,7 @@ handleEvent dEnv h = \case
         ", status: " <>
         show pstat
     MessageReactionAdd _ → putStrLn "Received a reaction event."
+    MessageUpdate _ _ -> return () -- seems to happen when we post the embeds
     m → do
         putStrLn "Event detected. Not handled."
         print m

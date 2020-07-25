@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax     #-}
@@ -65,7 +64,3 @@ queryPirate t = catchE (
             return .
             Left $ "Yarr, twas a problem gettin' " <> T.unpack t <> ", cap'n! The ship is sank! Tis: " <> show e
     )
-
--- $> import Control.Monad.Trans.Except
-
--- $> runExceptT $ Lib.Pirate.NyaaPantsu.queryPirate (pack "mirai nikki")
