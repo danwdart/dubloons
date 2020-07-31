@@ -5,6 +5,7 @@
 module Lib.Discord where
 
 import           Control.Concurrent
+import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Except
 import           Data.Map.Strict            hiding (null)
@@ -22,11 +23,22 @@ import           Lib.Types
 import           Prelude                    hiding (lookup, map, print,
                                              putStrLn, take, unwords, words,
                                              zip)
+import           System.Exit
+import           System.Posix.Signals
 
 handleStart ∷ Env → DiscordHandle → IO ()
 handleStart dEnv h = do
     putStrLn "Start handler called"
-    void $ sendMessage h (envCID dEnv) "-- Arrr, I be here! --"
+    _ <- sendMsg "-- Arrr, I be here! --"
+    tid <- myThreadId
+    void $ installHandler keyboardSignal (
+        Catch $ do
+            _ <- sendMsg "-- Bye, cap'n! --"
+            throwTo tid UserInterrupt
+            exitSuccess
+        ) Nothing
+    where
+        sendMsg = sendMessage h (envCID dEnv)
 
 sendMessage ∷ DiscordHandle → ChannelId → MessageText → IO MessageResult
 sendMessage h cid = restCall h . CreateMessage cid
