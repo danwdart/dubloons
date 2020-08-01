@@ -8,7 +8,7 @@ import           Control.Concurrent
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Except
-import           Data.Map.Strict            hiding (null)
+import           Data.Map.Strict as M       hiding (null)
 import           Data.Text                  as T hiding (concat, head, map,
                                                   null, tail, take, zip)
 import           Discord
@@ -33,7 +33,15 @@ handleStart dEnv h = do
     tid <- myThreadId
     void $ installHandler keyboardSignal (
         Catch $ do
-            _ <- sendMsg "-- Bye, cap'n! --"
+            -- if otherwise dead because connection failure, ignore.
+            catch (do
+                -- Say goodbye to all channels we're in.
+                cache <- readCache h
+                mapM_ (\cid -> sendMessage h cid "-- Bye, cap'n! --") (M.keys $ M.filter (\case
+                    ChannelText {} -> True
+                    _ -> False
+                    ) $ _channels cache)
+                ) $ \(SomeException _) -> return ()
             throwTo tid UserInterrupt
             exitSuccess
         ) Nothing
