@@ -8,7 +8,7 @@ import           Control.Concurrent
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Except
-import           Data.Map.Strict as M       hiding (null)
+import           Data.Map.Strict            as M hiding (null)
 import           Data.Text                  as T hiding (concat, head, map,
                                                   null, tail, take, zip)
 import           Discord
