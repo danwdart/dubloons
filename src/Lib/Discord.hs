@@ -26,6 +26,12 @@ import           Prelude                    hiding (lookup, map, print,
 import           System.Exit
 import           System.Posix.Signals
 
+isTextChannel :: Channel -> Bool
+isTextChannel = \case
+    ChannelText {} -> True
+    _ -> False
+    
+
 handleStart ∷ DiscordHandle → IO ()
 handleStart h = do
     putStrLn "Start handler called"
@@ -35,11 +41,8 @@ handleStart h = do
             -- if otherwise dead because connection failure, ignore.
             catch (do
                 -- Say goodbye to all channels we're in.
-                cache <- readCache h
-                mapM_ (\cid -> sendMessage h cid "-- Bye, cap'n! --") (M.keys $ M.filter (\case
-                    ChannelText {} -> True
-                    _ -> False
-                    ) $ _channels cache)
+                endCache <- readCache h
+                mapM_ (\cid -> sendMessage h cid "-- Bye, cap'n! --") (M.keys $ M.filter isTextChannel $ _channels endCache)
                 ) $ \(SomeException _) -> return ()
             throwTo tid UserInterrupt
             exitSuccess
@@ -105,7 +108,7 @@ handleMessage dEnv un cid h = \case
         putStrLn $ un <> " said: " <> msg <> " in " <> T.pack (show cid)
         let w = T.words msg
         if null w then
-            putStrLn "Empty message?"
+            putErrStrLn "Empty message?"
         else do
             let cmd = head w
             let queries = tail w
@@ -174,14 +177,16 @@ handleEvent dEnv h = \case
             )
     GuildCreate
         Guild { guildRoles = gr }
-        GuildInfo { guildMembers = gm } →
-        putStrLn $ "Received GuildCreate event: " <> show grs <> "..." <> show gms where
-            grs = roleName <$> gr
-            gms = (\m → (
-                userName . memberUser $ m,
-                userDiscrim . memberUser $ m,
-                memberNick m
-                )) <$> gm
+        GuildInfo { guildMembers = gm } → do
+            putStrLn $ "Received GuildCreate event: " <> show grs <> "..." <> show gms
+            -- void $ sendMessage h cid "-- Bye, cap'n! --"
+            where
+                grs = roleName <$> gr
+                gms = (\m → (
+                    userName . memberUser $ m,
+                    userDiscrim . memberUser $ m,
+                    memberNick m
+                    )) <$> gm
     ChannelCreate ch → case ch of
         ChannelText {
             channelId = cid,
@@ -191,7 +196,7 @@ handleEvent dEnv h = \case
             channelPermissions = cperms,
             channelTopic = ctop,
             channelLastMessage = clm
-        } → putStrLn $ "ChannelText: " <> show (
+        } → putStrLn $ "ChannelCreate ChannelText: " <> show (
             cid,
             gid,
             cname,
@@ -207,7 +212,7 @@ handleEvent dEnv h = \case
             channelPosition = cpos,
             channelBitRate = cbitrate,
             channelUserLimit = cuserlimit
-        } → putStrLn $ "ChannelVoice: " <> show (
+        } → putStrLn $ "ChannelCreate ChannelVoice: " <> show (
             cid,
             gid,
             cname,
@@ -219,7 +224,7 @@ handleEvent dEnv h = \case
             channelId = cid,
             channelRecipients = crecips,
             channelLastMessage = clastmsg
-        } → putStrLn $ "ChannelDirectMessage: " <> show (
+        } → putStrLn $ "ChannelCreate ChannelDirectMessage: " <> show (
             cid,
             crecips,
             clastmsg
@@ -228,7 +233,7 @@ handleEvent dEnv h = \case
             channelId = cid,
             channelRecipients = crecips,
             channelLastMessage = clastmsg
-        } → putStrLn $ "ChannelDirectMessage: " <> show (
+        } → putStrLn $ "ChannelCreate ChannelDirectMessage: " <> show (
             cid,
             crecips,
             clastmsg
@@ -236,11 +241,11 @@ handleEvent dEnv h = \case
         ChannelGuildCategory {
             channelId = cid,
             channelGuild = cguild
-        } → putStrLn $ "ChannelGuildCategory: " <> show (
+        } → putStrLn $ "ChannelCreate ChannelGuildCategory: " <> show (
             cid,
             cguild
             )
-        _ → putStrLn "Unsupported channel create message."
+        _ → putErrStrLn "Unsupported channel create message."
     TypingStart TypingInfo {
         typingUserId = uid,
         typingChannelId = cid
@@ -262,8 +267,8 @@ handleEvent dEnv h = \case
     MessageReactionAdd _ → putStrLn "Received a reaction event."
     MessageUpdate _ _ -> return () -- seems to happen when we post the embeds
     m → do
-        putStrLn "Event detected. Not handled."
-        print m
+        putErrStrLn "Event detected. Not handled."
+        printErr m
 
 handleQuit ∷ IO ()
 handleQuit = putStrLn "Quit handler called"
