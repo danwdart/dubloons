@@ -5,6 +5,20 @@
 
 packages:
 - completed:
+    hackage: aeson-1.4.7.1@sha256:6d8d2fd959b7122a1df9389cf4eca30420a053d67289f92cdc0dbc0dab3530ba,7098
+    pantry-tree:
+      size: 40133
+      sha256: caa9306e519c601ab0170d113daa03c1163db53e5466be2968bbd61a771bebcb
+  original:
+    hackage: aeson-1.4.7.1@sha256:6d8d2fd959b7122a1df9389cf4eca30420a053d67289f92cdc0dbc0dab3530ba,7098
+- completed:
+    hackage: base64-bytestring-1.0.0.3@sha256:6c82d900465345e30ff0eeb9a1374fbd2955c8e5ca6206e03669f04575830f88,2242
+    pantry-tree:
+      size: 848
+      sha256: 580b3808ee3ee06468d56808639a6b46615ff385c64d977423817434d17a9888
+  original:
+    hackage: base64-bytestring-1.0.0.3@sha256:6c82d900465345e30ff0eeb9a1374fbd2955c8e5ca6206e03669f04575830f88,2242
+- completed:
     hackage: discord-haskell-1.6.0@sha256:31fa17a469dabee9e543a264fa958dc6fbf8119b3626fa06a595208114b7c3a2,3798
     pantry-tree:
       size: 2108
@@ -34,7 +48,7 @@ packages:
     hackage: req-3.1.0@sha256:b058fd588ccdbced9e7d33b9112cd41960f29ce90acc7d77e2dd7518da171a01,4926
 snapshots:
 - completed:
-    size: 506369
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2020/7/4.yaml
-    sha256: c8cc8af8b8a71177ac9358888b5d8915a6bb0b80a7055fb70c7a3f56e6263cd1
-  original: nightly-2020-07-04
+    size: 523649
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2020/8/27.yaml
+    sha256: 95012648db1b2180e3d7e0a3d44bc2a61b6854028382674724fee7ffa24300c3
+  original: nightly-2020-08-27

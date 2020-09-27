@@ -7,7 +7,6 @@ import           Control.Exception
 import           Control.Monad hiding (fail)
 import           Control.Monad.Trans.Except
 import           Data.Text                  (Text)
-import qualified Data.Text                  as T
 import           Discord
 import           Lib.Discord
 import           Lib.Prelude
@@ -25,23 +24,11 @@ dubloonsEnvSettings ∷ EnvSettings
 dubloonsEnvSettings = [
     (
         "DISCORD_AUTH_TOKEN",
-        "Failed to get the authentication token. Please set the environment variable DISCORD_AUTH_TOKEN to your token & make sure you include DISCORD_CHANNEL_ID. See https://github.com/aquarial/discord-haskell/wiki/Creating-your-first-Bot for more details."
-    ),
-    (
-        "DISCORD_CHANNEL_ID",
-        "Failed to get the channel ID. Please set the environment variable DISCORD_CHANNEL_ID."
-    ),
-    (
-        "DISCORD_GUILD_ID",
-        "Failed to get the guild ID. Please set the environment variable DISCORD_GUILD_ID."
+        "Failed to get the authentication token. Please set the environment variable DISCORD_AUTH_TOKEN to your token. See https://github.com/aquarial/discord-haskell/wiki/Creating-your-first-Bot for more details."
     ),
     (
         "API_DOMAIN",
         "Failed to get the API domain. Please set the environment variable API_DOMAIN."
-    ),
-    (
-        "TORRENT_CLIENT",
-        "Failed to get the torrent client. Please set the environment variable TORRENT_CLIENT."
     )
     ]
 
@@ -59,18 +46,12 @@ main = void $ runExceptT $ do
     putStrLn "Loading environment variables"
     [
         token,
-        cid,
-        gid,
-        apiDomain,
-        torrentClient
+        apiDomain
         ] <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
     putStrLn "Starting bot"
     _ <- io . runDiscord $
         runDiscordOpts Env {
             envToken = token,
-            envCID = fromIntegral $ read (T.unpack cid),
-            envGID = fromIntegral $ read (T.unpack gid),
-            envApiDomain = apiDomain,
-            envTorrentClient = torrentClient
+            envApiDomain = apiDomain
         }
     putStrLn "Bot stopped"

@@ -26,10 +26,9 @@ import           Prelude                    hiding (lookup, map, print,
 import           System.Exit
 import           System.Posix.Signals
 
-handleStart ∷ Env → DiscordHandle → IO ()
-handleStart dEnv h = do
+handleStart ∷ DiscordHandle → IO ()
+handleStart h = do
     putStrLn "Start handler called"
-    _ <- sendMsg "-- Arrr, I be here! --"
     tid <- myThreadId
     void $ installHandler keyboardSignal (
         Catch $ do
@@ -45,8 +44,6 @@ handleStart dEnv h = do
             throwTo tid UserInterrupt
             exitSuccess
         ) Nothing
-    where
-        sendMsg = sendMessage h (envCID dEnv)
 
 sendMessage ∷ DiscordHandle → ChannelId → MessageText → IO MessageResult
 sendMessage h cid = restCall h . CreateMessage cid
@@ -274,7 +271,7 @@ handleQuit = putStrLn "Quit handler called"
 runDiscordOpts ∷ Env → RunDiscordOpts
 runDiscordOpts dEnv = RunDiscordOpts {
     discordToken = envToken dEnv,
-    discordOnStart = handleStart dEnv,
+    discordOnStart = handleStart,
     discordOnEnd = handleQuit,
     discordOnEvent = handleEvent dEnv,
     discordOnLog = putStrLn,
