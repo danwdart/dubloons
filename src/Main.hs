@@ -42,7 +42,7 @@ getDubloonsEnv var err = catchE (
 main ∷ IO ()
 main = void $ runExceptT $ do
     io . hSetBuffering stdout $ LineBuffering
-    putStrLn "Dubloons v0.5.2.0"
+    putStrLn "Dubloons v0.6.0.0"
     putStrLn "Loading environment variables"
     [
         token,
