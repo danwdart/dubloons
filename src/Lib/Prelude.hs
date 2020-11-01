@@ -14,13 +14,13 @@ import Prelude (
     ($),
     (<$>),
     (.),
-    IO,
     MonadFail,
     read,
     show,
     Show,
     )
 import qualified System.Environment as P
+import System.IO
 import qualified System.Process as P
 
 io :: (MonadIO m) => IO a -> m a
@@ -38,8 +38,14 @@ fail = io . P.fail . toString
 putStrLn :: (MonadIO m, IsString s, Show s) => s → m ()
 putStrLn = io . P.putStrLn . toString
 
+putErrStrLn :: (MonadIO m, IsString s, Show s) => s → m ()
+putErrStrLn = io . hPutStrLn stderr . toString
+
 print :: (MonadIO m, Show s) => s → m ()
 print = io . P.print
+
+printErr :: (MonadIO m, Show s) => s → m ()
+printErr = io . hPrint stderr
 
 spawnCommand :: (MonadIO m, IsString s, Show s) => s -> m P.ProcessHandle
 spawnCommand = io . P.spawnCommand . toString

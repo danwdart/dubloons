@@ -1,10 +1,7 @@
 
-resolver: nightly-2020-10-31
+resolver: nightly-2020-11-01
 packages:
   - .
 extra-deps:
-- discord-haskell-1.8.0@sha256:420515069c5be313dd31d16e9a4b163d2b3fdda18ba18e98cbb0b0536cbae136,3562
-- hxt-xpath-9.1.2.2@sha256:9cd590ae93a04573db8f90fa4094625ebd97dded45da7667c577ce6b38a42900,1999
-- emoji-0.1.0.2@sha256:d995572a5c7dcd28f98eb15c6e387a7b3bda1ac2477ab0d9dba8580d5d7b161f,1273
 ghc-options:
-  dubloons: -Wall -Werror -Wno-type-defaults
+  dubloons: -j16 -Wall -Werror
