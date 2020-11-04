@@ -39,7 +39,7 @@ handleStart dEnv h = do
                 cache <- readCache h
                 mapM_ (\cid -> sendMessage h cid "-- Bye, cap'n! --") (M.keys $ M.filter (\case
                     ChannelText {} -> True
-                    _ -> False
+                    _              -> False
                     ) $ _channels cache)
                 ) $ \(SomeException _) -> return ()
             throwTo tid UserInterrupt
@@ -88,7 +88,7 @@ getQuery dEnv cid h query = void $ forkIO $ do
 parseMsg ∷ Env →  ChannelId → DiscordHandle → Query → Command → IO ()
 parseMsg dEnv cid h query = \case
     "get" → getQuery dEnv cid h query
-    _ → return ()
+    _     → return ()
 
 handleMessage ∷ Env → Username → ChannelId → DiscordHandle → MessageText → IO ()
 handleMessage dEnv un cid h = \case
