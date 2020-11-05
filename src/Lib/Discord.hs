@@ -37,7 +37,7 @@ handleStart dEnv h = do
             catch (do
                 -- Say goodbye to all channels we're in.
                 cache <- readCache h
-                mapM_ (\cid -> sendMessage h cid "-- Bye, cap'n! --") (M.keys $ M.filter (\case
+                mapM_ (\cid -> sendMessage h cid "-- Bye, cap'n! --") (M.keys . M.filter (\case
                     ChannelText {} -> True
                     _              -> False
                     ) $ _channels cache)
@@ -70,7 +70,7 @@ sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
     }))
 
 getQuery ∷ Env → ChannelId → DiscordHandle → Query → IO ()
-getQuery dEnv cid h query = void $ forkIO $ do
+getQuery dEnv cid h query = void . forkIO $ (do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
     resTPB <- runExceptT $ TPB.queryPirate apiDomain query
     resN <- runExceptT $ N.queryPirate query
@@ -78,8 +78,7 @@ getQuery dEnv cid h query = void $ forkIO $ do
     let results = concat =<< [resTPB, resN, resNP]
     let r = zip [1..] results
     mapM_ sendMsgRow (take 20 r)
-    when (null results) $
-        void . sendMsg $ "Yarrrr, there be nothin' fer " <> query <> "!"
+    when (null results) . void . sendMsg $ ("Yarrrr, there be nothin' fer " <> query <> "!"))
     where
         apiDomain = envApiDomain dEnv
         sendMsg = sendMessage h cid
@@ -92,13 +91,13 @@ parseMsg dEnv cid h query = \case
 
 handleMessage ∷ Env → Username → ChannelId → DiscordHandle → MessageText → IO ()
 handleMessage dEnv un cid h = \case
-    "/hello" → void $ sendMsg $ "Ahoy, matey, " <> un <> "!"
+    "/hello" → void . sendMsg $ ("Ahoy, matey, " <> un <> "!")
     "/status" → void $ sendMsg "Yarr, all hands on deck!"
-    "/help" → void $ sendMsg $ "Arr, ye can say:\n" <>
+    "/help" → void . sendMsg $ ("Arr, ye can say:\n" <>
         "/hello - I be doin' an echo!\n" <>
         "/status - I tell ye how I be doin'!\n" <>
         "/help - This!\n" <>
-        "/quit - I say bye cap'n!"
+        "/quit - I say bye cap'n!")
     "/quit" → do
         _ <- sendMsg "Bye, Cap'n!"
         putStrLn "Received quit message"

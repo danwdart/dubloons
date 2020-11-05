@@ -50,10 +50,10 @@ getDubloonsEnv var err = catchE (
         ExceptT (
             tryJust (guard . isDoesNotExistError) (getEnv var)
         )
-    ) $ const $ fail err
+    ) . const $ fail err
 
 main ∷ IO ()
-main = void $ runExceptT $ do
+main = void . runExceptT $ (do
     io . hSetBuffering stdout $ LineBuffering
     putStrLn "Dubloons v0.5.2.0"
     putStrLn "Loading environment variables"
@@ -73,4 +73,4 @@ main = void $ runExceptT $ do
             envApiDomain = apiDomain,
             envTorrentClient = torrentClient
         }
-    putStrLn "Bot stopped"
+    putStrLn "Bot stopped")
