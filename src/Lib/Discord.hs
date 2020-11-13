@@ -41,7 +41,7 @@ handleStart dEnv h = do
                     ChannelText {} -> True
                     _              -> False
                     ) $ _channels cache)
-                ) $ \(SomeException _) -> return ()
+                ) $ \(SomeException _) -> pure ()
             throwTo tid UserInterrupt
             exitSuccess
         ) Nothing
@@ -87,7 +87,7 @@ getQuery dEnv cid h query = void . forkIO $ (do
 parseMsg ∷ Env →  ChannelId → DiscordHandle → Query → Command → IO ()
 parseMsg dEnv cid h query = \case
     "get" → getQuery dEnv cid h query
-    _     → return ()
+    _     → pure ()
 
 handleMessage ∷ Env → Username → ChannelId → DiscordHandle → MessageText → IO ()
 handleMessage dEnv un cid h = \case
@@ -262,7 +262,7 @@ handleEvent dEnv h = \case
         ", status: " <>
         show pstat
     MessageReactionAdd _ → putStrLn "Received a reaction event."
-    MessageUpdate _ _ -> return () -- seems to happen when we post the embeds
+    MessageUpdate _ _ -> pure () -- seems to happen when we post the embeds
     m → do
         putStrLn "Event detected. Not handled."
         print m
