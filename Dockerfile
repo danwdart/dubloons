@@ -1,5 +1,4 @@
-FROM fpco/stack-build as builder
-COPY . .
+FROM dandart/dubloons:build as builder
 RUN stack install
 
 FROM ubuntu
