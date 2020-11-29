@@ -22,7 +22,7 @@ executable dubloons
     , aeson
     , bytestring
     , containers
-    , discord-haskell == 1.6.0
+    , discord-haskell
     , feed
     , http-client
     , hxt
@@ -53,7 +53,7 @@ test-suite dubloons-tests
     , aeson
     , bytestring
     , containers
-    , discord-haskell == 1.6.0
+    , discord-haskell
     , feed
     , hspec
     , http-client

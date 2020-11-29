@@ -8,6 +8,8 @@ import           Control.Concurrent
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.Except
+
+import           Control.Monad.IO.Class
 import           Data.Map.Strict            as M hiding (null)
 import           Data.Text                  as T hiding (concat, head, map,
                                                   null, tail, take, zip)
@@ -25,19 +27,21 @@ import           Prelude                    hiding (lookup, map, print,
                                              zip)
 import           System.Exit
 import           System.Posix.Signals
+import Control.Monad.Trans.Reader (ask, ReaderT(runReaderT))
 
-handleStart ∷ Env → DiscordHandle → IO ()
-handleStart dEnv h = do
+handleStart ∷ Env → DiscordHandler ()
+handleStart dEnv = do
+    h <- ask
     putStrLn "Start handler called"
     _ <- sendMsg "-- Arrr, I be here! --"
-    tid <- myThreadId
-    void $ installHandler keyboardSignal (
+    tid <- liftIO myThreadId
+    liftIO . void $ installHandler keyboardSignal (
         Catch $ do
             -- if otherwise dead because connection failure, ignore.
-            catch (do
+            catch (flip runReaderT h $ do
                 -- Say goodbye to all channels we're in.
-                cache <- readCache h
-                mapM_ (\cid -> sendMessage h cid "-- Bye, cap'n! --") (M.keys . M.filter (\case
+                cache <- readCache
+                mapM_ (`sendMessage` "-- Bye, cap'n! --") (M.keys . M.filter (\case
                     ChannelText {} -> True
                     _              -> False
                     ) $ _channels cache)
@@ -46,13 +50,13 @@ handleStart dEnv h = do
             exitSuccess
         ) Nothing
     where
-        sendMsg = sendMessage h (envCID dEnv)
+        sendMsg = sendMessage (envCID dEnv)
 
-sendMessage ∷ DiscordHandle → ChannelId → MessageText → IO MessageResult
-sendMessage h cid = restCall h . CreateMessage cid
+sendMessage ∷ ChannelId → MessageText → DiscordHandler MessageResult
+sendMessage cid = restCall . CreateMessage cid
 
-sendEmbedRow ∷ DiscordHandle → ChannelId → Row → IO MessageResult
-sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
+sendEmbedRow ∷ ChannelId → Row → DiscordHandler MessageResult
+sendEmbedRow cid row = restCall (CreateMessageEmbed cid "" (CreateEmbed {
     createEmbedAuthorName = T.pack $ show (source row),
     createEmbedAuthorUrl = "",
     createEmbedAuthorIcon = Nothing,
@@ -69,28 +73,30 @@ sendEmbedRow h cid row = restCall h (CreateMessageEmbed cid "" (CreateEmbed {
     createEmbedFooterIcon = Nothing
     }))
 
-getQuery ∷ Env → ChannelId → DiscordHandle → Query → IO ()
-getQuery dEnv cid h query = void . forkIO $ (do
+getQuery ∷ Env → ChannelId → Query → DiscordHandler ()
+getQuery dEnv cid query = do
     _ <- sendMsg $ "Yarrrr, I be gettin' " <> query <> " for ye!"
-    resTPB <- runExceptT $ TPB.queryPirate apiDomain query
-    resN <- runExceptT $ N.queryPirate query
-    resNP <- runExceptT $ NP.queryPirate query
-    let results = concat =<< [resTPB, resN, resNP]
+    -- async this somehow
+    results <- liftIO $ do
+        resTPB <- runExceptT $ TPB.queryPirate apiDomain query
+        resN <- runExceptT $ N.queryPirate query
+        resNP <- runExceptT $ NP.queryPirate query
+        pure $ concat =<< [resTPB, resN, resNP]
     let r = zip [1..] results
     mapM_ sendMsgRow (take 20 r)
-    when (null results) . void . sendMsg $ ("Yarrrr, there be nothin' fer " <> query <> "!"))
+    when (null results) . void . sendMsg $ ("Yarrrr, there be nothin' fer " <> query <> "!")
     where
         apiDomain = envApiDomain dEnv
-        sendMsg = sendMessage h cid
-        sendMsgRow = sendEmbedRow h cid
+        sendMsg = sendMessage cid
+        sendMsgRow = sendEmbedRow cid
 
-parseMsg ∷ Env →  ChannelId → DiscordHandle → Query → Command → IO ()
-parseMsg dEnv cid h query = \case
-    "get" → getQuery dEnv cid h query
+parseMsg ∷ Env →  ChannelId → Query → Command → DiscordHandler ()
+parseMsg dEnv cid query = \case
+    "get" → getQuery dEnv cid query
     _     → pure ()
 
-handleMessage ∷ Env → Username → ChannelId → DiscordHandle → MessageText → IO ()
-handleMessage dEnv un cid h = \case
+handleMessage ∷ Env → Username → ChannelId → MessageText → DiscordHandler ()
+handleMessage dEnv un cid = \case
     "/hello" → void . sendMsg $ ("Ahoy, matey, " <> un <> "!")
     "/status" → void $ sendMsg "Yarr, all hands on deck!"
     "/help" → void . sendMsg $ ("Arr, ye can say:\n" <>
@@ -101,7 +107,7 @@ handleMessage dEnv un cid h = \case
     "/quit" → do
         _ <- sendMsg "Bye, Cap'n!"
         putStrLn "Received quit message"
-        stopDiscord h
+        stopDiscord
     msg → do
         -- TODO pattern match had an issue so wat
         putStrLn $ un <> " said: " <> msg <> " in " <> T.pack (show cid)
@@ -112,12 +118,12 @@ handleMessage dEnv un cid h = \case
             let cmd = head w
             let queries = tail w
             let query = T.unwords queries
-            parseMsg dEnv cid h query cmd
+            parseMsg dEnv cid query cmd
     where
-        sendMsg = sendMessage h cid
+        sendMsg = sendMessage cid
 
-handleEvent ∷ Env → DiscordHandle → Event → IO ()
-handleEvent dEnv h = \case
+handleEvent ∷ Env → Event → DiscordHandler ()
+handleEvent dEnv = \case
     MessageCreate Message {
         messageId = mid,
         messageChannel = cid,
@@ -162,7 +168,7 @@ handleEvent dEnv h = \case
                 isPinned,
                 gid
                 )
-            handleMessage dEnv un cid h msg
+            handleMessage dEnv un cid msg
     Ready i user cids gidsunavailable txt →
         putStrLn $
         "Received Ready event. Details: " <>
