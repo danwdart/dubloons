@@ -17,6 +17,7 @@ import           Discord
 import           Discord.Requests
 import           Discord.Types
 -- todo indexify
+import           Control.Monad.Trans.Reader (ReaderT (runReaderT), ask)
 import qualified Lib.Pirate.Nyaa            as N
 import qualified Lib.Pirate.NyaaPantsu      as NP
 import qualified Lib.Pirate.TPB             as TPB
@@ -27,7 +28,6 @@ import           Prelude                    hiding (lookup, map, print,
                                              zip)
 import           System.Exit
 import           System.Posix.Signals
-import Control.Monad.Trans.Reader (ask, ReaderT(runReaderT))
 
 handleStart ∷ Env → DiscordHandler ()
 handleStart dEnv = do
