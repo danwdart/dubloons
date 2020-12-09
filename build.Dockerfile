@@ -1,3 +1,5 @@
-FROM fpco/stack-build as builder
+FROM nixos/nix
 COPY . .
-RUN stack build
+RUN nix-env -i git
+RUN nix-build
+CMD ["dubloons"]
