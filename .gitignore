@@ -5,4 +5,6 @@ dist-newstyle
 google.json
 auth-token.secret
 *.hi
-*.oresult
+*.o
+result*
+.direnv
