@@ -7,4 +7,5 @@ auth-token.secret
 *.hi
 *.o
 result*
+
 .direnv
