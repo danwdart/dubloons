@@ -43,3 +43,4 @@ executable dubloons
     , Lib.Pirate.NyaaPantsu
     , Lib.Prelude
     , Lib.Types
+  ghc-options:         -Wall -Werror
