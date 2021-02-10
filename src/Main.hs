@@ -9,6 +9,7 @@ import           Control.Monad.Trans.Except
 import           Data.Text                  (Text)
 import qualified Data.Text                  as T
 import           Discord
+import           Discord.Internal.Types.Prelude
 import           Lib.Discord
 import           Lib.Prelude
 import           Lib.Types
@@ -55,8 +56,8 @@ getDubloonsEnv var err = catchE (
 main ∷ IO ()
 main = void . runExceptT $ (do
     io . hSetBuffering stdout $ LineBuffering
-    putStrLn "Dubloons v0.5.2.0"
-    putStrLn "Loading environment variables"
+    putStrLn ("Dubloons v0.5.2.0" :: Text)
+    putStrLn ("Loading environment variables" :: Text)
     [
         token,
         cid,
@@ -64,13 +65,13 @@ main = void . runExceptT $ (do
         apiDomain,
         torrentClient
         ] <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
-    putStrLn "Starting bot"
+    putStrLn ("Starting bot" :: Text)
     _ <- io . runDiscord $
         runDiscordOpts Env {
             envToken = token,
-            envCID = fromIntegral $ read (T.unpack cid),
-            envGID = fromIntegral $ read (T.unpack gid),
+            envCID = (fromIntegral (read (T.unpack cid) :: Integer) :: Snowflake),
+            envGID = (fromIntegral (read (T.unpack gid) :: Integer) :: Snowflake),
             envApiDomain = apiDomain,
             envTorrentClient = torrentClient
         }
-    putStrLn "Bot stopped")
+    putStrLn ("Bot stopped" :: Text))

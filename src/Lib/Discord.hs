@@ -32,7 +32,7 @@ import           System.Posix.Signals
 handleStart ∷ Env → DiscordHandler ()
 handleStart dEnv = do
     h <- ask
-    putStrLn "Start handler called"
+    putStrLn ("Start handler called" :: Text)
     _ <- sendMsg "-- Arrr, I be here! --"
     tid <- liftIO myThreadId
     liftIO . void $ installHandler keyboardSignal (
@@ -82,7 +82,7 @@ getQuery dEnv cid query = do
         resN <- runExceptT $ N.queryPirate query
         resNP <- runExceptT $ NP.queryPirate query
         pure $ concat =<< [resTPB, resN, resNP]
-    let r = zip [1..] results
+    let r = zip ([1..] :: [Int]) results
     mapM_ sendMsgRow (take 20 r)
     when (null results) . void . sendMsg $ ("Yarrrr, there be nothin' fer " <> query <> "!")
     where
@@ -106,14 +106,14 @@ handleMessage dEnv un cid = \case
         "/quit - I say bye cap'n!")
     "/quit" → do
         _ <- sendMsg "Bye, Cap'n!"
-        putStrLn "Received quit message"
+        putStrLn ("Received quit message" :: Text)
         stopDiscord
     msg → do
         -- TODO pattern match had an issue so wat
         putStrLn $ un <> " said: " <> msg <> " in " <> T.pack (show cid)
         let w = T.words msg
         if null w then
-            putStrLn "Empty message?"
+            putStrLn ("Empty message?" :: Text)
         else do
             let cmd = head w
             let queries = tail w
@@ -248,7 +248,7 @@ handleEvent dEnv = \case
             cid,
             cguild
             )
-        _ → putStrLn "Unsupported channel create message."
+        _ → putStrLn ("Unsupported channel create message." :: Text)
     TypingStart TypingInfo {
         typingUserId = uid,
         typingChannelId = cid
@@ -267,14 +267,14 @@ handleEvent dEnv = \case
         show gid <>
         ", status: " <>
         show pstat
-    MessageReactionAdd _ → putStrLn "Received a reaction event."
+    MessageReactionAdd _ → putStrLn ("Received a reaction event." :: Text)
     MessageUpdate _ _ -> pure () -- seems to happen when we post the embeds
     m → do
-        putStrLn "Event detected. Not handled."
+        putStrLn ("Event detected. Not handled." :: Text)
         print m
 
 handleQuit ∷ IO ()
-handleQuit = putStrLn "Quit handler called"
+handleQuit = putStrLn ("Quit handler called" :: Text)
 
 runDiscordOpts ∷ Env → RunDiscordOpts
 runDiscordOpts dEnv = RunDiscordOpts {
