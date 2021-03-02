@@ -26,7 +26,7 @@ dubloonsEnvSettings ∷ EnvSettings
 dubloonsEnvSettings = [
     (
         "DISCORD_AUTH_TOKEN",
-        "Failed to get the authentication token. Please set the environment variable DISCORD_AUTH_TOKEN to your token & make sure you include DISCORD_CHANNEL_ID. See https://github.com/aquarial/discord-haskell/wiki/Creating-your-first-Bot for more details."
+        "Failed to get the authentication token. Please set the environment variable DISCORD_AUTH_TOKEN to your token. See https://discord.com/developers/applications for more details."
     ),
     (
         "DISCORD_CHANNEL_ID",
@@ -39,10 +39,6 @@ dubloonsEnvSettings = [
     (
         "API_DOMAIN",
         "Failed to get the API domain. Please set the environment variable API_DOMAIN."
-    ),
-    (
-        "TORRENT_CLIENT",
-        "Failed to get the torrent client. Please set the environment variable TORRENT_CLIENT."
     )
     ]
 
@@ -62,8 +58,7 @@ main = void . runExceptT $ (do
         token,
         cid,
         gid,
-        apiDomain,
-        torrentClient
+        apiDomain
         ] <- sequence $ uncurry getDubloonsEnv <$> dubloonsEnvSettings
     putStrLn ("Starting bot" :: Text)
     _ <- io . runDiscord $
@@ -71,7 +66,6 @@ main = void . runExceptT $ (do
             envToken = token,
             envCID = (fromIntegral (read (T.unpack cid) :: Integer) :: Snowflake),
             envGID = (fromIntegral (read (T.unpack gid) :: Integer) :: Snowflake),
-            envApiDomain = apiDomain,
-            envTorrentClient = torrentClient
+            envApiDomain = apiDomain
         }
     putStrLn ("Bot stopped" :: Text))

@@ -58,12 +58,10 @@ type Query = Text
 type Command = Text
 type MessageResult = Either RestCallErrorCode Message
 type APIDomain = Text
-type TorrentClient = Text
 
 data Env = Env {
     envToken         :: Token,
     envCID           :: ChannelId,
     envGID           :: GuildId,
-    envApiDomain     :: APIDomain,
-    envTorrentClient :: TorrentClient
+    envApiDomain     :: APIDomain
 }
