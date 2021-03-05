@@ -29,6 +29,6 @@ queryPirate apiDomain t = catchE (
     ) (
         \(SomeException e) →
             ExceptT .
-            return .
+            pure .
             Left $ "Yarr, twas a problem gettin' " <> T.unpack t <> ", cap'n! The ship is sank! Tis: " <> show e
     )

@@ -30,7 +30,7 @@ getSearch term = do
         <> queryParam "q" (Just term :: Maybe Text)
     let body = responseBody response
     let feed = parseFeedString $ toString body
-    return $ case feed of
+    pure $ case feed of
         Just (RSSFeed (RSS _ _ RSSChannel {rssItems} _)) ->
             (\RSSItem {
                 rssItemTitle,
@@ -61,6 +61,6 @@ queryPirate t = catchE (
     ) (
         \(SomeException e) →
             ExceptT .
-            return .
+            pure .
             Left $ "Yarr, twas a problem gettin' " <> T.unpack t <> ", cap'n! The ship is sank! Tis: " <> show e
     )

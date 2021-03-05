@@ -34,7 +34,7 @@ data Row = Row {
 instance FromJSON Row where
     parseJSON (Object value) = Row <$>
         value .: "id" <*>
-        return TPB <*>
+        pure TPB <*>
         value .: "name" <*>
         value .: "info_hash" <*>
         (readMaybe <$> value .: "leechers") <*>
