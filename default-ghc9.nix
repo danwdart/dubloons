@@ -7,16 +7,8 @@ let
       # TODO fix cryptonite to use integer-gmp 1.1
       # https://github.com/haskell-crypto/cryptonite/issues/340
       cryptonite = self.callHackage "cryptonite" "0.28" {};
-      # https://github.com/UweSchmidt/hxt/issues/91
-      hxt = (self.callHackage "hxt" "9.3.1.21" {}).overrideDerivation(self: {
-        prePatch = ''
-          sed -i 's/:: ! /:: !/g' src/Text/XML/HXT/DOM/QualifiedName.hs
-          sed -zi 's/initialXNames@\n \[/initialXNames@[/' src/Text/XML/HXT/DOM/QualifiedName.hs
-          sed -zi 's/initialQNames@\n \[/initialQNames@[/' src/Text/XML/HXT/DOM/QualifiedName.hs
-          sed -i 's/:: ! /:: !/g' src/Text/XML/HXT/Parser/XmlCharParser.hs
-          sed -i 's/:: ! /:: !/g' src/Text/XML/HXT/Arrow/XmlState/TypeDefs.hs
-        '';
-      });
+      # Earliest version supporting ghc 9.0.1
+      hxt = self.callHackage "hxt" "9.3.1.22" {};
       # https://github.com/vincenthz/hs-memory/issues/84
       memory = (self.callHackage "memory" "0.15.0" {}).overrideDerivation(self: {
         prePatch = ''
