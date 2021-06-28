@@ -4,17 +4,17 @@
 module Main where
 
 import           Control.Exception
-import           Control.Monad              hiding (fail)
+import           Control.Monad                  hiding (fail)
 import           Control.Monad.Trans.Except
-import           Data.Text                  (Text)
-import qualified Data.Text                  as T
+import           Data.Text                      (Text)
+import qualified Data.Text                      as T
 import           Discord
 import           Discord.Internal.Types.Prelude
 import           Lib.Discord
 import           Lib.Prelude
 import           Lib.Types
-import           Prelude                    hiding (fail, print, putStrLn)
-import           System.IO                  hiding (putStrLn)
+import           Prelude                        hiding (fail, print, putStrLn)
+import           System.IO                      hiding (putStrLn)
 import           System.IO.Error
 
 type EnvVariable = Text
@@ -64,8 +64,8 @@ main = void . runExceptT $ (do
     _ <- io . runDiscord $
         runDiscordOpts Env {
             envToken = token,
-            envCID = (fromIntegral (read (T.unpack cid) :: Integer) :: Snowflake),
-            envGID = (fromIntegral (read (T.unpack gid) :: Integer) :: Snowflake),
+            envCID = fromIntegral (read (T.unpack cid) :: Integer) :: Snowflake,
+            envGID = fromIntegral (read (T.unpack gid) :: Integer) :: Snowflake,
             envApiDomain = apiDomain
         }
     putStrLn ("Bot stopped" :: Text))

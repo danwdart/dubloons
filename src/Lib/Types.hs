@@ -60,8 +60,8 @@ type MessageResult = Either RestCallErrorCode Message
 type APIDomain = Text
 
 data Env = Env {
-    envToken         :: Token,
-    envCID           :: ChannelId,
-    envGID           :: GuildId,
-    envApiDomain     :: APIDomain
+    envToken     :: Token,
+    envCID       :: ChannelId,
+    envGID       :: GuildId,
+    envApiDomain :: APIDomain
 }
